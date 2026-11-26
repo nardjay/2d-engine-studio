@@ -1,0 +1,9 @@
+# OS / editor junk
+Thumbs.db
+.DS_Store
+*.swp
+
+# local scratch (never ship)
+*.log
+tmp/
+audit-*.html
