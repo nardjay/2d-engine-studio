@@ -520,3 +520,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .debug-line.hint{color:#8fb7ff;font-style:italic;padding-left:52px}
 .settings-tab{padding:4px 12px;font-size:12px}
 .ui-object[style*="cursor"]{ }
+
+/* v2.6: play-mode click feedback pulse */
+@keyframes rtflash{0%{outline-color:#35d07f}100%{outline-color:transparent}}
+.rt-flash{outline:3px solid #35d07f;outline-offset:3px;animation:rtflash .5s ease-out forwards;pointer-events:none}

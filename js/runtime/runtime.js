@@ -13,9 +13,9 @@ const WIDGET_TYPES = new Set(['input', 'slider', 'toggle']);
  * code hooks (init/update/click), bound widgets and automatic purchases.
  */
 export class GameRuntime {
-  constructor(sourceProject, { onError = () => {}, onScene = null } = {}) {
+  constructor(sourceProject, { onError = () => {}, onScene = null, onInteract = null } = {}) {
     this.onError = onError;
-    this.opts = { onScene };
+    this.opts = { onScene, onInteract };
     this.source = sourceProject;
     this.mountHost = null;
     this.destroyed = false;
@@ -668,6 +668,8 @@ export class GameRuntime {
     if (!node) return;
     const obj = this.project.objects.find(o => o.id === node.dataset.objectId);
     if (!obj || obj.visible === false) return;
+    // feedback hook: the editor flashes the clicked object and logs it while playing
+    this.opts.onInteract?.(obj, node);
 
     if (obj.type === 'toggle') {
       this.flipToggle(obj);
@@ -719,6 +721,12 @@ export class GameRuntime {
   }
 
   flipToggle(obj) {
+    if (!obj.variableId) {
+      // unbound toggle: flip its own on/off flag so it always works
+      obj.on = !obj.on;
+      this.dirty = true;
+      return;
+    }
     const variable = this.project.variables.find(v => v.id === obj.variableId);
     if (!variable) return;
     if (variable.type === 'boolean') {

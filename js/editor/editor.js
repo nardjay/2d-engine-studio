@@ -1085,6 +1085,14 @@ export class Editor {
         this.log('Runtime error: ' + message, 'err');
       },
       onScene: () => { if (this._fitGame) this._fitGame(); },
+      onInteract: (obj, node) => {
+        // green pulse so you SEE which thing you just poked while testing
+        const live = this.runtime?.nodes.get(obj.id) || node;
+        live.classList.add('rt-flash');
+        setTimeout(() => live.classList.remove('rt-flash'), 500);
+        const label = TYPE_DEFS[obj.type]?.label || obj.type;
+        this.log(`Playing: clicked ${label} "${obj.name}"`, 'ok');
+      },
     });
     this.runtime = runtime;
 

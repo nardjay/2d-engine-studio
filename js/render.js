@@ -201,7 +201,11 @@ function renderContent(node, obj, ctx, options = {}) {
       node.style.gap = '8px';
       node.style.justifyContent = 'flex-start';
       const sw = document.createElement('span');
-      sw.className = 'rt-switch' + (ctx.getVarById(obj.variableId) === true || (typeof ctx.getVarById(obj.variableId) === 'number' && ctx.getVarById(obj.variableId) !== 0) ? ' on' : '');
+      // state comes from the bound variable when there is one; otherwise from the
+      // toggle's own on/off flag — an unbound toggle must still work (audit v2.6)
+      const bound = obj.variableId ? ctx.getVarById(obj.variableId) : undefined;
+      const on = bound === undefined ? obj.on === true : (bound === true || (typeof bound === 'number' && bound !== 0));
+      sw.className = 'rt-switch' + (on ? ' on' : '');
       sw.style.setProperty('--sw-on', obj.fillColor || '#4f8cff');
       const lab = document.createElement('span');
       lab.style.fontSize = (obj.fontSize || 14) + 'px';

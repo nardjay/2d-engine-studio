@@ -69,7 +69,26 @@ export class Hierarchy {
       const s = this.host.querySelector('.hier-search');
       if (s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
     });
-    this.host.appendChild(search);
+    // plus button beside the search box: quick access to everything you can add
+    const plus = el('button', { class: 'btn', style: { padding: '3px 10px', fontSize: '14px' }, title: 'Add something…', text: '+' });
+    plus.addEventListener('click', () => {
+      const r = plus.getBoundingClientRect();
+      const items = [
+        { label: '📁 New Folder', onClick: () => this.editor.newFolder() },
+        { label: 'Paste', disabled: !this.editor._clipboard?.length, onClick: () => this.editor.pasteClipboard() },
+        '-',
+      ];
+      for (const [type, def] of Object.entries(TYPE_DEFS)) {
+        if (type === 'folder') continue;
+        items.push({ label: `Add ${def.label}`, onClick: () => this.editor.addObject(type) });
+      }
+      contextMenu(items, r.left, r.bottom + 4);
+    });
+    search.style.width = 'auto';
+    search.style.flex = '1';
+    search.style.margin = '0';
+    const searchRow = el('div', { class: 'row', style: { gap: '4px', padding: '0 10px 4px' } }, [search, plus]);
+    this.host.appendChild(searchRow);
 
     const q = (this._q || '').toLowerCase();
     const matches = o => !q
@@ -262,12 +281,35 @@ export class Hierarchy {
       const actions = el('div', { class: 'hier-actions' });
       actions.appendChild(iconBtn('plus', 'Add to object…', e => {
         const r = e.currentTarget.getBoundingClientRect();
+        const folders = this.editor.project.objects.filter(o => o.type === 'folder');
         contextMenu([
           { label: 'Add Script', onClick: () => { this.expanded.add(obj.id); this.editor.addScript(obj); } },
           { label: 'Add Script: On click', onClick: () => { this.expanded.add(obj.id); this.editor.addScript(obj, 'click'); } },
           { label: 'Add Script: On update', onClick: () => { this.expanded.add(obj.id); this.editor.addScript(obj, 'update'); } },
           { label: 'Add Script: On enter (trigger)', onClick: () => { this.expanded.add(obj.id); this.editor.addScript(obj, 'enter'); } },
+          { label: 'Add Script: On exit (trigger)', onClick: () => { this.expanded.add(obj.id); this.editor.addScript(obj, 'exit'); } },
+          { label: 'Add Script: On hover', onClick: () => { this.expanded.add(obj.id); this.editor.addScript(obj, 'hover'); } },
+          { label: 'Add Script: On init', onClick: () => { this.expanded.add(obj.id); this.editor.addScript(obj, 'init'); } },
+          '-',
+          { label: 'New Event: when this is clicked', onClick: () => {
+              const project = this.editor.project;
+              project.events.push({ id: uid('evt'), name: `${obj.name} click`, trigger: 'click', targetId: obj.id, conditions: [], actions: [] });
+              this.editor.commitHistory('New event');
+              this.editor.bottom?.setActive('events');
+              this.editor.scheduleAutosave();
+              toast(`Event created — add actions in the Events tab`, 'success');
+            } },
           { label: 'Add Variable…', onClick: () => this.addVariableFor(obj) },
+          { label: obj.locked ? 'Unlock' : 'Lock', onClick: () => this.editor.toggleLock([obj.id]) },
+          { label: folders.length ? 'Move to folder…' : 'New Folder & put inside', onClick: () => {
+              if (!folders.length) { const f = this.editor.newFolder(); this.editor.moveToFolder([obj.id], f.id); return; }
+              const rr = e.currentTarget.getBoundingClientRect();
+              contextMenu([
+                ...folders.map(f => ({ label: `📁 ${f.name}`, onClick: () => this.editor.moveToFolder([obj.id], f.id) })),
+                '-',
+                { label: 'Take out of folder', onClick: () => this.editor.moveToFolder([obj.id], null) },
+              ], rr.left, rr.bottom + 4);
+            } },
           '-',
           { label: 'Rename…', onClick: () => this.rename(obj) },
           { label: 'Duplicate', onClick: () => this.duplicate(obj) },

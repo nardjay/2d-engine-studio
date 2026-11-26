@@ -470,9 +470,12 @@ export class Inspector {
         s.appendChild(field('Binds variable', selectInput(variableOptions, obj.variableId || '', v => update({ variableId: v || null }))));
         s.appendChild(field('Label', textInput(obj.text, v => update({ text: v }))));
         s.appendChild(field('On color', colorInput(obj.fillColor, v => update({ fillColor: v }))));
+        if (!obj.variableId) s.appendChild(field('Switched on', checkboxInput(!!obj.on, v => update({ on: v }))));
         s.appendChild(el('div', {
           class: 'faint', style: { fontSize: '10px', lineHeight: '1.5' },
-          text: 'The bound variable should be a boolean; it flips on click at runtime.',
+          text: obj.variableId
+            ? 'The bound variable flips when the player clicks it in the game.'
+            : 'No variable bound — the switch still flips on click and keeps its own on/off state. Bind a variable to let scripts and events read it.',
         }));
         wrap.appendChild(s);
         break;
