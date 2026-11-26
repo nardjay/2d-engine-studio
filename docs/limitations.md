@@ -297,3 +297,21 @@ camera has no zoom yet, no physics engine beyond AABB + gravity.
 - **3D easter egg restored**: Konami code anywhere in the app → spinning CSS-3D cube overlay
   advertising the real rotX/rotY/z object properties; unlock remembered in localStorage.
   Documented under docs → Electives → The Rumor.
+
+## v2.4 — 2026-11-26 — Handbook v2: complete, verified, credited, publishing
+- **Docs honesty incident (found by user: "documentation is too weak")**: the previous
+  docs.html documented `collide() / hits() / onGround() / vel()` and JS `print()` —
+  **these functions do not exist** in the runtime. They were written from memory, not source.
+  Full API dumped from `runtime.js` (`scriptApi` keys) and every hook's `extra` payload
+  probed live: real collision fn is `touching(a,b)`; game hooks receive `other`
+  (onKey = key name, onClick = clicked object, onScene = scene name); console fn is `log`
+  (Lua `print` auto-maps to it); `self` exists in ALL scripts (game-level = Game brain object).
+- **Handbook rebuilt (22 chapters, 9 parts)**: every field of every object type, the COMPLETE
+  verified API, event-block action list, Lua mapping, physics model incl. bounce energy
+  numbers + respawn recycling, camera/world/stage + persp, scene boot order, groups,
+  particles cap, assets/embedding, **Exporting AND a new Publishing chapter**
+  (itch.io step-by-step, GitHub + Pages, file distribution, branding), limitations incl.
+  the doc-accuracy lesson.
+- **Credit**: Jaynard Jake Urban Onarag (@nardjay) added to docs header + footer +
+  License chapter, README author line, and the LICENSE copyright itself
+  (was "contributors").

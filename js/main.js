@@ -115,7 +115,7 @@ window.addEventListener('unhandledrejection', e => console.error('[2dengine-stud
     sub.className = 'secret3d-sub';
     sub.innerHTML = 'This cube is pure CSS 3D — and so is every object in the engine.<br>' +
       'Open the Inspector on any object and set <b>rotX</b>, <b>rotY</b> or <b>z</b> to spin it in real space.<br>' +
-      'The Handbook has a chapter about it: docs → Electives → The Rumor.';
+      'The Handbook has the full story: docs → Electives → The Rumor.';
     const btn = document.createElement('button');
     btn.className = 'secret3d-close';
     btn.textContent = 'Back to class';

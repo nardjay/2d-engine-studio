@@ -3,6 +3,8 @@
 A web-based 2D game engine with a Unity/Roblox-Studio-style editor. Pure HTML/CSS/JS —
 no build step, no dependencies, no install. Open `index.html` (or run a local server) and make games.
 
+**Created by Jaynard Jake Urban Onarag** (@nardjay) — MIT licensed; games you build are 100% yours.
+
 ## Run it
 
 Double-click **`start.bat`**. A small PowerShell server (built into Windows — nothing to
