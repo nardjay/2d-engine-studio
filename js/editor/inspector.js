@@ -1,4 +1,4 @@
-import { el, clear } from '../ui.js';
+import { el, clear, toast } from '../ui.js';
 import { TYPE_DEFS, getVariableById } from '../model.js';
 import { toNumber } from '../util.js';
 import { icon } from '../icons.js';
@@ -131,6 +131,9 @@ export class Inspector {
     wrap.appendChild(el('div', { class: 'insp-empty', text: `${ids.length} objects selected` }));
 
     const common = section('Common');
+    // group/multi coloring: one picker paints every selected object at once
+    common.appendChild(field('Color (fill)', colorInput('#2b3b5e', v => this.editor.patchSelection({ bg: v }))));
+    common.appendChild(field('Text color', colorInput('#e6ecf7', v => this.editor.patchSelection({ color: v }))));
     common.appendChild(field('Opacity', numberInput(1, v => {
       this.editor.patchSelection({ opacity: Math.max(0, Math.min(1, v)) });
     }, { min: 0, max: 1, step: 0.05 })));
@@ -157,8 +160,40 @@ export class Inspector {
     return wrap;
   }
 
+  renderFolder(obj) {
+    const wrap = el('div');
+    const project = this.editor.project;
+    const contents = project.objects.filter(o => o.folderId === obj.id);
+    const s = section('Folder');
+    s.appendChild(field('Name', textInput(obj.name, v => {
+      obj.name = v;
+      this.editor.commitHistory('Rename folder');
+      this.editor.hierarchy.render();
+      this.editor.scheduleAutosave();
+    })));
+    s.appendChild(el('div', { class: 'faint', style: { fontSize: '11px', lineHeight: '1.7' },
+      text: `${contents.length} item(s) inside. Drag rows in the Explorer to move objects in or out. Folders are editor-only — the game and exports never see them.` }));
+    wrap.appendChild(s);
+    const actions = section('Actions');
+    actions.appendChild(el('div', { class: 'row', style: { flexWrap: 'wrap', gap: '4px' } }, [
+      el('button', { class: 'btn', text: 'Select contents', onclick: () => this.editor.setSelection(contents.map(o => o.id)) }),
+      el('button', { class: 'btn', text: 'New Folder inside', onclick: () => this.editor.newFolder(obj.id) }),
+      el('button', { class: 'btn danger', text: 'Delete folder (keep contents)', onclick: () => {
+        project.objects = project.objects.filter(o => o.id !== obj.id);
+        for (const o of project.objects) if (o.folderId === obj.id) o.folderId = null;
+        this.editor.setSelection([]);
+        this.editor.commitHistory('Delete folder');
+        this.editor.refreshPanels();
+        this.editor.scheduleAutosave();
+      } }),
+    ]));
+    wrap.appendChild(actions);
+    return wrap;
+  }
+
   /* ------------ single object ------------ */
   renderObject(obj) {
+    if (obj.type === 'folder') return this.renderFolder(obj);
     const wrap = el('div');
     const project = this.editor.project;
     const update = (patch) => this.editor.updateObject(obj.id, patch);
@@ -215,6 +250,11 @@ export class Inspector {
       ]);
       return el('div', { class: 'row', style: { gap: '5px', flex: '1' } }, [num, btns]);
     })()));
+    transform.appendChild(field('Locked', checkboxInput(!!obj.locked, v => {
+      update({ locked: v });
+      this.editor.hierarchy.render();
+      toast(v ? `"${obj.name}" locked — canvas clicks pass through it` : `"${obj.name}" unlocked`);
+    })));
     transform.appendChild(field('Scene', (() => {
       const sel = el('select', { class: 'input' });
       const names = (this.editor.project.scenes || []).map(sc => sc.name);

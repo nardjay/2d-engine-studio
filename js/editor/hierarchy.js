@@ -51,7 +51,7 @@ export class Hierarchy {
       el('div', { class: 'spacer' }),
       el('button', {
         class: 'btn', style: { fontSize: '10px', padding: '2px 8px' }, text: 'Select all',
-        onclick: () => this.editor.setSelection(project.objects.map(o => o.id)),
+        onclick: () => this.editor.setSelection(project.objects.filter(o => !o.locked && o.type !== 'folder').map(o => o.id)),
       }),
     ]);
     this.host.appendChild(head);
@@ -79,13 +79,21 @@ export class Hierarchy {
 
     const list = el('div', {
       class: 'hier-list',
+      ondragover: e => { if (e.dataTransfer.types.includes('text/hier-id')) e.preventDefault(); },
+      ondrop: e => {
+        // dropping on empty Explorer space = move back out of any folder
+        const id = e.dataTransfer.getData('text/hier-id');
+        if (id && !e.target.closest('.hier-row')) { e.preventDefault(); this.editor.moveToFolder([id], null); }
+      },
       oncontextmenu: e => {
         if (e.target.closest('.hier-row, .hier-child')) return; // row handlers own those
         e.preventDefault();
         const addItems = Object.entries(TYPE_DEFS).map(([type, def]) =>
           ({ label: `Add ${def.label}`, onClick: () => this.editor.addObject(type) }));
         contextMenu([
-          { label: 'Select all', onClick: () => this.editor.setSelection(project.objects.map(o => o.id)), disabled: !project.objects.length },
+          { label: 'Select all', onClick: () => this.editor.setSelection(project.objects.filter(o => !o.locked && o.type !== 'folder').map(o => o.id)), disabled: !project.objects.length },
+          { label: 'New Folder', onClick: () => this.editor.newFolder() },
+          { label: 'Paste', disabled: !this.editor._clipboard?.length, onClick: () => this.editor.pasteClipboard() },
           { label: 'Collapse all', onClick: () => { this.expanded.clear(); this.render(); } },
           '-',
           ...addItems,
@@ -93,6 +101,64 @@ export class Hierarchy {
       },
     });
     const sorted = [...project.objects].filter(inScene).sort((a, b) => (b.layer || 0) - (a.layer || 0));
+    // FOLDERS (Explorer-only organizers). Objects/folders with folderId nest inside.
+    const folders = sorted.filter(o => o.type === 'folder');
+    const folderHasKids = f => folders.some(x => x.folderId === f.id) || project.objects.some(x => x.folderId === f.id && x.type !== 'folder');
+    const renderFolder = (f, depth) => {
+      const kids = project.objects.filter(o => o.folderId === f.id && inScene(o) && matches(o));
+      const subFolders = folders.filter(x => x.folderId === f.id);
+      const collapsed = this.expanded.has(f.id);
+      const count = kids.length + subFolders.length;
+      const frow = el('div', {
+        class: 'hier-row hier-folder' + (this.editor.selection.includes(f.id) ? ' selected' : ''),
+        draggable: 'true',
+        title: `Folder: ${count} item(s) · drag rows onto this folder to file them`,
+        onclick: e => { if (e.target.closest('.hier-actions')) return; this.editor.setSelection([f.id]); },
+        ondragstart: e => { e.dataTransfer.setData('text/hier-id', f.id); e.dataTransfer.effectAllowed = 'move'; },
+        ondragover: e => { e.preventDefault(); frow.classList.add('hier-drophot'); },
+        ondragleave: () => frow.classList.remove('hier-drophot'),
+        ondrop: e => {
+          e.preventDefault(); e.stopPropagation();
+          frow.classList.remove('hier-drophot');
+          const id = e.dataTransfer.getData('text/hier-id');
+          if (id) this.editor.moveToFolder([id], f.id);
+        },
+        oncontextmenu: e => {
+          e.preventDefault();
+          contextMenu([
+            { label: 'Rename…', onClick: async () => { const n = await promptDialog('Rename folder', 'Folder name', f.name); if (n?.trim()) { f.name = n.trim(); this.editor.commitHistory('Rename folder'); this.render(); this.editor.scheduleAutosave(); } } },
+            { label: 'New Folder inside', onClick: () => this.editor.newFolder(f.id) },
+            { label: 'Select contents', onClick: () => this.editor.setSelection(project.objects.filter(o => o.folderId === f.id && o.type !== 'folder').map(o => o.id)) },
+            { label: 'Move contents out', onClick: () => this.editor.moveToFolder(project.objects.filter(o => o.folderId === f.id).map(o => o.id), null) },
+            '-',
+            { label: 'Delete folder (keep contents)', danger: true, onClick: () => {
+              const project = this.editor.project;
+              project.objects = project.objects.filter(o => o.id !== f.id);
+              for (const o of project.objects) if (o.folderId === f.id) o.folderId = null;
+              this.editor.setSelection([]);
+              this.editor.commitHistory('Delete folder');
+              this.editor.refreshPanels();
+              this.editor.scheduleAutosave();
+            } },
+          ], e.clientX, e.clientY);
+        },
+      }, [
+        el('span', {
+          class: 'hier-caret' + (collapsed && !count ? ' leaf' : ''),
+          text: count ? (collapsed ? '▸' : '▾') : '·',
+          onclick: e => { e.stopPropagation(); if (!count) return; if (collapsed) this.expanded.delete(f.id); else this.expanded.add(f.id); this.render(); },
+        }),
+        el('span', { class: 'type-ico', html: icon('folder', 12) }),
+        el('span', { class: 'hier-name', text: f.name, title: 'Folder — editor-only, never exported' }),
+        el('span', { class: 'hier-hook', text: `×${count}` }),
+      ]);
+      if (depth) frow.classList.add('hier-indented');
+      list.appendChild(frow);
+      if (collapsed) return;
+      for (const sub of subFolders) renderFolder(sub, depth + 1);
+      for (const obj of kids) for (const n of this.rowFor(obj, project, true)) list.appendChild(n);
+    };
+    for (const f of folders.filter(x => !x.folderId || !folders.some(p => p.id === x.folderId))) renderFolder(f, 0);
     // group folders first (Unity-style): click = select members, dblclick = go in
     const groups = (project.groups || []).filter(g => (g.scene || 'main') === sceneName || !sceneName);
     for (const g of groups) {
@@ -129,7 +195,7 @@ export class Hierarchy {
       if (collapsed) continue;
       for (const obj of members) for (const n of this.rowFor(obj, project, true)) list.appendChild(n);
     }
-    const loose = sorted.filter(o => !o.groupId || !groups.some(g => g.id === o.groupId));
+    const loose = sorted.filter(o => o.type !== 'folder' && (!o.groupId || !groups.some(g => g.id === o.groupId)) && (!o.folderId || !folders.some(f => f.id === o.folderId)));
     // Explorer windowing (audit fix): huge projects render fast by showing the
     // top 300 loose objects; searching removes the cap, a footer loads the rest.
     const LIMIT = 300;
@@ -161,7 +227,9 @@ export class Hierarchy {
       const expanded = this.expanded.has(obj.id);
 
       const row = el('div', {
-        class: 'hier-row' + (selected ? ' selected' : '') + (obj.visible === false ? ' hidden-obj' : ''),
+        class: 'hier-row' + (selected ? ' selected' : '') + (obj.visible === false ? ' hidden-obj' : '') + (obj.locked ? ' locked-obj' : ''),
+        draggable: 'true',
+        ondragstart: e => { e.dataTransfer.setData('text/hier-id', obj.id); e.dataTransfer.effectAllowed = 'move'; },
         onclick: e => {
           if (e.target.closest('.hier-actions')) return;
           if (e.shiftKey || e.ctrlKey || e.metaKey) this.editor.toggleSelection(obj.id);
@@ -188,6 +256,7 @@ export class Hierarchy {
         el('span', { class: 'hier-name', text: obj.name, title: obj.name }),
       ]);
       if (hasCode) row.appendChild(el('span', { class: 'hier-code', title: `${scripts.filter(s => s.code?.trim()).length} script(s) with code`, html: icon('code', 11) }));
+      if (obj.locked) row.appendChild(el('span', { class: 'hier-lock', title: 'Locked — click passes through on canvas. Ctrl+L to unlock', text: '🔒' }));
       if (obj.layer) row.appendChild(el('span', { class: 'hier-layer', text: 'L' + obj.layer, title: 'Layer ' + obj.layer }));
 
       const actions = el('div', { class: 'hier-actions' });

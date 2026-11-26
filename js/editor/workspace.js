@@ -67,7 +67,7 @@ export class Workspace {
       const objNode = e.target.closest('.ui-object');
       if (objNode) {
         const obj = this.editor.project.objects.find(o => o.id === objNode.dataset.objectId);
-        if (obj) {
+        if (obj && !obj.locked) {
           if (!this.editor.selection.includes(obj.id)) this.editor.setSelection([obj.id]);
           this.editor.showObjectMenu(obj, e.clientX, e.clientY);
           return;
@@ -142,6 +142,7 @@ export class Workspace {
     const ctx = createRenderContext(project);
     const sceneName = scene ? scene.name : null;
     const objects = [...project.objects]
+      .filter(o => o.type !== 'folder') // folders live only in the Explorer
       .filter(o => !sceneName || (o.scene || 'main') === sceneName || o.persist === true) // editor shows one scene + persistent objects
       .sort((a, b) => (a.layer || 0) - (b.layer || 0));
     for (const obj of objects) {
@@ -323,7 +324,7 @@ export class Workspace {
     if (handle && this.selection.size === 1) {
       const id = [...this.selection][0];
       const obj = this.editor.project.objects.find(o => o.id === id);
-      if (obj) {
+      if (obj && !obj.locked) {
         this.drag = {
           mode: 'resize', handle: handle.dataset.h, id,
           start: this.clientToStage(e.clientX, e.clientY),
@@ -335,7 +336,7 @@ export class Workspace {
     }
 
     const objNode = e.target.closest('.ui-object');
-    if (objNode) {
+    if (objNode && !this.editor.project.objects.find(o => o.id === objNode.dataset.objectId)?.locked) {
       const id = objNode.dataset.objectId;
       if (e.shiftKey) {
         if (this.selection.has(id)) this.selection.delete(id);
@@ -560,7 +561,7 @@ export class Workspace {
     }
     for (const id of all) {
       const obj = this.editor.project.objects.find(o => o.id === id);
-      if (!obj) continue;
+      if (!obj || obj.locked) continue; // locked objects never move
       obj.x += dx; obj.y += dy;
       this.updateNode(id);
     }

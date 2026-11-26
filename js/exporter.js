@@ -106,6 +106,7 @@ const PROJECT = ${data};
 
 function stripForExport(project) {
   const clone = JSON.parse(JSON.stringify(project));
+  clone.objects = (clone.objects || []).filter(o => o.type !== 'folder'); // editor-only
   for (const o of clone.objects || []) {
     for (const s of o.codeScripts || []) { delete s._broken; }
   }

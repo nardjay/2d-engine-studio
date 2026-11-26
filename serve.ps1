@@ -44,6 +44,7 @@ while ($listener.IsListening) {
     $req = $ctx.Request
     $res = $ctx.Response
     $res.Headers.Add('Cache-Control', 'no-store')
+    $res.Headers.Add('Access-Control-Allow-Origin', '*')
 
     if ($req.HttpMethod -ne 'GET' -and $req.HttpMethod -ne 'HEAD') {
       $res.StatusCode = 405; $res.Close(); continue

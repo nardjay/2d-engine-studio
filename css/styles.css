@@ -14,9 +14,6 @@ body{
   font-size:13px;-webkit-font-smoothing:antialiased;
 }
 .hidden{display:none !important}
-.launch-hint{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:var(--bg-0);color:var(--text);text-align:center}
-.launch-hint span{max-width:560px;color:var(--text-dim);line-height:1.6}
-.launch-hint code{color:var(--text);background:var(--bg-3);padding:2px 5px;border-radius:4px}
 button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
 input,select,textarea{font-family:inherit;font-size:inherit}
 ::-webkit-scrollbar{width:10px;height:10px}
@@ -515,3 +512,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   from { transform: translateY(0) rotate(0deg); opacity: .8; }
   to { transform: translateY(115vh) rotate(340deg); opacity: 0; }
 }
+
+/* v2.5: folders, lock, console hints, settings tabs */
+.hier-lock{margin-left:4px;font-size:10px;opacity:.75}
+.locked-obj .hier-name{opacity:.65}
+.hier-drophot{background:rgba(90,140,255,.18);outline:1px dashed #6ea0ff;outline-offset:-2px}
+.debug-line.hint{color:#8fb7ff;font-style:italic;padding-left:52px}
+.settings-tab{padding:4px 12px;font-size:12px}
+.ui-object[style*="cursor"]{ }

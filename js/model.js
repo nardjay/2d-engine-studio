@@ -89,6 +89,11 @@ export const TYPE_DEFS = {
       colors: '#ffd76e,#ff9e6b', running: true,
     },
   },
+  folder: {
+    // Editor-only organizer: never renders, never exports, never runs physics.
+    label: 'Folder', icon: 'folder',
+    defaults: { w: 1, h: 1, bg: 'transparent', folderId: null },
+  },
 };
 
 function uniqueName(project, base) {
@@ -113,6 +118,7 @@ export function createObject(type, project, overrides = {}) {
     opacity: 1,
     ...deepClone(def.defaults),
     scene: 'main', groupId: null, persist: false, gravity: 0, vx: 0, vy: 0, bounce: false, rotation: 0, z: 0, rotX: 0, rotY: 0,
+    locked: false, folderId: null,
     ...overrides,
   };
   object.name = overrides.name || uniqueName(project, def.label);

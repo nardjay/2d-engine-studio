@@ -178,7 +178,6 @@ function renderContent(node, obj, ctx, options = {}) {
       const bound = ctx.getVarById(obj.variableId);
       input.value = bound === undefined || bound === null ? '' : String(bound);
       if (!options.interactive) input.disabled = true;
-      else input.readOnly = obj.variableId ? false : true;
       node.appendChild(input);
       break;
     }

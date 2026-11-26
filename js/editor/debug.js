@@ -16,7 +16,9 @@ export class DebugPanel {
       if (this.isMounted) this.rerenderThrottled();
       return;
     }
-    this.entries.push({ message, type, time: new Date(), count: 1 });
+    const entry = { message, type, time: new Date(), count: 1 };
+    if (type === 'error' || type === 'err') entry.hint = friendlyHint(String(message));
+    this.entries.push(entry);
     if (this.entries.length > 300) this.entries.shift();
     if (this.isMounted) this.rerenderThrottled();
   }
@@ -53,8 +55,28 @@ export class DebugPanel {
         el('span', { text: entry.message }),
         entry.count > 1 ? el('span', { class: 'debug-x', text: `×${entry.count}` }) : null,
       ].filter(Boolean)));
+      if (entry.hint) wrap.appendChild(el('div', { class: 'debug-line hint' }, [
+        el('span', { class: 't', text: '' }),
+        el('span', { text: '→ ' + entry.hint }),
+      ]));
     }
     this.host.appendChild(wrap);
     this.host.scrollTop = this.host.scrollHeight;
   }
+}
+
+/** Turn the common runtime errors into a plain sentence about WHAT to fix. */
+function friendlyHint(msg) {
+  let m;
+  if ((m = msg.match(/Unknown object "([^"]+)"/))) return `There is no object named "${m[1]}". Open the Explorer and use the object's EXACT name (capitalization counts), or the object may live in another scene.`;
+  if (/binds a missing variable/.test(msg)) return 'This widget points at a variable that was deleted. Select the widget in the Explorer and pick a fresh Variable in Properties.';
+  if (/Unknown variable|no variable/i.test(msg)) return 'The script uses a variable name that does not exist. Check the Variables tab — names are case-sensitive.';
+  if (/is not defined/.test(msg)) return 'A name in the script does not exist: check spelling/case, or you used a function this engine does not have (see the Handbook → Scripting API).';
+  if (/Unexpected token|Unexpected end|SyntaxError/i.test(msg)) return 'Syntax error — count your brackets and quotes on that line.';
+  if (/attempt to index|attempt to call/.test(msg)) return 'Lua error: the value before the dot is nil — obj("Name") found nothing (wrong name?) or a variable was never set.';
+  if (/NaN|Number expected/.test(msg)) return 'A text value landed where a number belongs. Check the variable type in the Variables tab.';
+  if (/gotoScene/.test(msg) && /unknown|not found/i.test(msg)) return 'That scene name does not exist. The name in gotoScene("...") must match a scene tab exactly.';
+  if (/blocked.*cross-origin|CSP|Content Security/i.test(msg)) return 'The browser blocked a resource (usually only on strict hosts like itch.io).';
+  if (/could not be parsed|broken/i.test(msg)) return 'This script was skipped after repeated errors. Fix the first error above, then press Reset to re-arm it.';
+  return null;
 }

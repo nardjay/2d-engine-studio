@@ -56,19 +56,7 @@ class App {
 }
 
 const app = new App();
-const launchHint = document.getElementById('launch-hint');
-app.start()
-  .then(() => launchHint?.remove())
-  .catch(error => {
-    console.error('[2dengine-studio] startup failed', error);
-    if (launchHint) {
-      launchHint.innerHTML = '';
-      launchHint.append(
-        Object.assign(document.createElement('strong'), { textContent: 'The app could not start.' }),
-        Object.assign(document.createElement('span'), { textContent: error?.message || String(error) }),
-      );
-    }
-  });
+app.start().catch(error => console.error('[2dengine-studio] startup failed', error));
 
 // Surface unexpected errors in the console without killing the app.
 window.addEventListener('error', e => console.error('[2dengine-studio]', e.error || e.message));

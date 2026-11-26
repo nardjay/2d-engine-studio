@@ -30,6 +30,8 @@ export class GameRuntime {
 
   resetState() {
     this.project = deepClone(this.source);
+    // folders are editor-only organizers — the game never sees them
+    this.project.objects = this.project.objects.filter(o => o.type !== 'folder');
     this._gameUpdateBroken = false;
     this._gameUpdateErrors = 0;
     for (const o of this.project.objects) o.codeScripts?.forEach(s => { s._broken = false; });

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>2D Engine Studio</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="launch-hint" class="launch-hint" role="status">
+    <strong>This app needs to be served locally.</strong>
+    <span>Opening index.html directly blocks its JavaScript modules. Run <code>start.bat</code> in this folder, or open the folder with VS Code Live Server.</span>
+  </div>
+  <div id="app">
+    <section id="dashboard" class="screen"></section>
+    <section id="editor" class="screen hidden"></section>
+  </div>
+  <div id="runtime-overlay" class="hidden"></div>
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

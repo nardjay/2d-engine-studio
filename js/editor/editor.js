@@ -411,27 +411,46 @@ export class Editor {
         })),
     ]);
 
-    const content = el('div', {}, [
+    // two tabs: what the PLAYER sees vs how the EDITOR behaves — no more mixed pile
+    const gameTab = el('div', {}, [
       el('div', { class: 'faint', style: { fontSize: '10px', marginBottom: '6px' }, text: 'SIZE PRESETS' }),
       presets,
       el('div', { style: { height: '8px' } }),
-      w.row, h.row, grid.row,
+      w.row, h.row,
       el('div', { class: 'cond-row' }, [el('span', { class: 'field-label', text: 'Background' }), bg]),
       el('div', { class: 'cond-row' }, [el('span', { class: 'field-label', text: 'Background image' }), bgImg]),
-      chk('Show grid', showGrid),
-      chk('Snap objects to grid & edges', snap),
       el('div', { style: { height: '8px' } }),
       el('div', { class: 'faint', style: { fontSize: '10px', marginBottom: '6px' }, text: 'GAMEPLAY' }),
       vol.row, grav.row, worldW.row, worldH.row,
       el('div', { class: 'cond-row' }, [el('span', { class: 'field-label', text: 'Start scene' }), startScene, dl]),
     ]);
+    const editorTab = el('div', { class: 'hidden' }, [
+      el('div', { class: 'faint', style: { fontSize: '10px', marginBottom: '6px' }, text: 'WORKSPACE HELPERS (never affect the exported game)' }),
+      grid.row,
+      chk('Show grid', showGrid),
+      chk('Snap objects to grid & edges', snap),
+    ]);
+    const gameBtn = el('button', { class: 'btn settings-tab primary', text: '🎮 Game', onclick: () => pick('game') });
+    const editorBtn = el('button', { class: 'btn settings-tab', text: '🛠 Editor', onclick: () => pick('editor') });
+    const pick = which => {
+      gameTab.classList.toggle('hidden', which !== 'game');
+      editorTab.classList.toggle('hidden', which !== 'editor');
+      gameBtn.classList.toggle('primary', which === 'game');
+      editorBtn.classList.toggle('primary', which === 'editor');
+    };
+    const content = el('div', {}, [
+      el('div', { class: 'row', style: { gap: '6px', marginBottom: '10px' } }, [gameBtn, editorBtn]),
+      gameTab,
+      editorTab,
+    ]);
 
     openModal({
-      title: `Project settings — ${this.project.name}`,
+      title: `Settings — ${this.project.name}`,
       content,
       actions: [{ label: 'Cancel', value: false }, { label: 'Apply', value: true, primary: true }],
     }).then(applied => {
       if (!applied) return;
+      this.log('Settings applied');
       s.width = Math.max(160, toNumber(w.i.value, s.width));
       s.height = Math.max(120, toNumber(h.i.value, s.height));
       s.gridSize = Math.max(2, toNumber(grid.i.value, s.gridSize));
@@ -471,6 +490,7 @@ export class Editor {
           this.debouncedCommit();
         } },
       '-',
+      { label: obj.locked ? 'Unlock (Ctrl+L)' : 'Lock (Ctrl+L)', onClick: () => this.toggleLock(this.selection.includes(obj.id) ? this.selection : [obj.id]) },
       { label: 'Duplicate', onClick: () => { this.setSelection([obj.id]); this.duplicateSelection(); } },
       { label: 'Bring forward (layer +1)', onClick: () => this.layerOrder('up') },
       { label: 'Send backward (layer −1)', onClick: () => this.layerOrder('down') },
@@ -518,8 +538,11 @@ export class Editor {
 
   showCanvasMenu(x, y) {
     const project = this.project;
+    const selectable = project.objects.filter(o => !o.locked && o.type !== 'folder').map(o => o.id);
     contextMenu([
-      { label: 'Select all', onClick: () => this.setSelection(project.objects.map(o => o.id)) },
+      { label: 'Select all', onClick: () => this.setSelection(selectable) },
+      { label: 'New Folder', onClick: () => { this.newFolder(); this.hierarchy.render(); } },
+      { label: 'Paste', disabled: !this._clipboard?.length, onClick: () => this.pasteClipboard() },
       { label: project.settings.showGrid ? 'Hide grid' : 'Show grid', onClick: () => this.toggleGrid() },
       { label: project.settings.snap === false ? 'Enable snapping' : 'Disable snapping', onClick: () => {
           project.settings.snap = project.settings.snap === false;
@@ -663,7 +686,8 @@ export class Editor {
   groupSelection() {
     if (this.selection.length < 2) { toast('Select 2+ objects to group', 'error'); return; }
     const ids = new Set(this.selection);
-    const members = this.project.objects.filter(o => ids.has(o.id));
+    const members = this.project.objects.filter(o => ids.has(o.id) && o.type !== 'folder');
+    if (members.length < 2) { toast('Folders cannot be grouped — select real objects', 'error'); return; }
     const scene = members[0].scene || 'main';
     if (!members.every(o => (o.scene || 'main') === scene)) { toast('Group members must share one scene', 'error'); return; }
     const g = { id: uid('grp'), name: `Group ${(this.project.groups || []).length + 1}`, scene };
@@ -860,7 +884,11 @@ export class Editor {
   deleteSelection() {
     if (!this.selection.length) return;
     const ids = new Set(this.selection);
+    const wasFolder = new Set(this.project.objects.filter(o => ids.has(o.id) && o.type === 'folder').map(o => o.id));
     this.project.objects = this.project.objects.filter(o => !ids.has(o.id));
+    // deleting a folder never deletes its contents — they move back to the root
+    if (wasFolder.size) for (const o of this.project.objects) if (wasFolder.has(o.folderId)) o.folderId = null;
+    // locked objects left outside the selection are untouchable, which is the point
     // clean up event references
     for (const event of this.project.events) {
       if (ids.has(event.targetId)) event.targetId = null;
@@ -870,6 +898,90 @@ export class Editor {
     this.commitHistory('Delete object(s)');
     this.refreshPanels();
     this.scheduleAutosave();
+  }
+
+  /* ---------------- lock ---------------- */
+  isLocked(id) {
+    const o = getObjectById(this.project, id);
+    return !!(o && o.locked);
+  }
+
+  toggleLock(ids) {
+    const targets = (ids && ids.length ? ids : this.selection)
+      .map(id => getObjectById(this.project, id))
+      .filter(o => o && o.type !== 'folder');
+    if (!targets.length) return;
+    const anyUnlocked = targets.some(o => !o.locked);
+    for (const o of targets) o.locked = anyUnlocked;
+    this.commitHistory(anyUnlocked ? 'Lock objects' : 'Unlock objects');
+    this.refreshPanels();
+    this.scheduleAutosave();
+    toast(anyUnlocked ? `Locked ${targets.length} object(s) — canvas clicks pass through` : 'Unlocked', 'success');
+  }
+
+  /* ---------------- folders (Explorer organizers) ---------------- */
+  newFolder(parentId = null) {
+    const obj = createObject('folder', this.project, { folderId: parentId });
+    this.project.objects.push(obj);
+    this.commitHistory('New folder');
+    this.refreshPanels();
+    this.scheduleAutosave();
+    return obj;
+  }
+
+  /** Move objects (or folders) into a folder; targetId null = back to root. Cycle-safe. */
+  moveToFolder(ids, targetId) {
+    const target = targetId ? getObjectById(this.project, targetId) : null;
+    if (targetId && (!target || target.type !== 'folder')) return;
+    const moving = new Set(ids);
+    // refuse to drop a folder inside itself or one of its own descendants
+    if (target) {
+      let p = target;
+      const chain = new Set();
+      while (p) { chain.add(p.id); p = p.folderId ? getObjectById(this.project, p.folderId) : null; }
+      for (const id of moving) if (chain.has(id)) { toast("Can't put a folder inside itself", 'warn'); return; }
+    }
+    let n = 0;
+    for (const id of moving) {
+      const o = getObjectById(this.project, id);
+      if (o && o.id !== targetId) { o.folderId = targetId || null; n++; }
+    }
+    if (!n) return;
+    this.commitHistory(target ? `Move to ${target.name}` : 'Move to root');
+    this.refreshPanels();
+    this.scheduleAutosave();
+  }
+
+  /* ---------------- clipboard (cut / copy / paste) ---------------- */
+  copySelection(cut = false) {
+    const objs = this.selection.map(id => getObjectById(this.project, id)).filter(o => o && o.type !== 'folder');
+    if (!objs.length) return;
+    this._clipboard = deepClone(objs);
+    toast(`${objs.length} object(s) copied${cut ? ' (cut)' : ''}`, 'success');
+    if (cut) this.deleteSelection();
+  }
+
+  pasteClipboard() {
+    if (!this._clipboard || !this._clipboard.length) { toast('Clipboard empty — Ctrl+C first', 'warn'); return; }
+    const created = [];
+    for (const source of this._clipboard) {
+      const copy = deepClone(source);
+      copy.id = uid('obj');
+      copy.name = source.name + (this.project.objects.some(o => o.name === source.name) ? ' Copy' : '');
+      copy.x = (source.x || 0) + 16;
+      copy.y = (source.y || 0) + 16;
+      copy.groupId = null;
+      copy.codeScripts = (copy.codeScripts || []).map(s => ({ ...s, id: uid('scr') }));
+      this.project.objects.push(copy);
+      created.push(copy.id);
+    }
+    // second paste offsets again so stacks never fully overlap
+    this._clipboard = this._clipboard.map(c => ({ ...c, x: c.x + 16, y: c.y + 16 }));
+    this.setSelection(created);
+    this.commitHistory('Paste object(s)');
+    this.refreshPanels();
+    this.scheduleAutosave();
+    toast(`Pasted ${created.length} object(s)`, 'success');
   }
 
   duplicateSelection() {
@@ -1087,6 +1199,10 @@ export class Editor {
       if (typing) return;
 
       if (mod && e.key.toLowerCase() === 'd') { e.preventDefault(); this.duplicateSelection(); return; }
+      if (mod && e.key.toLowerCase() === 'c') { e.preventDefault(); this.copySelection(false); return; }
+      if (mod && e.key.toLowerCase() === 'x') { e.preventDefault(); this.copySelection(true); return; }
+      if (mod && e.key.toLowerCase() === 'v') { e.preventDefault(); this.pasteClipboard(); return; }
+      if (mod && e.key.toLowerCase() === 'l') { e.preventDefault(); this.toggleLock(); return; }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (this.selection.length) { e.preventDefault(); this.deleteSelection(); }
       }
