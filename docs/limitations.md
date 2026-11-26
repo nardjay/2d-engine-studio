@@ -312,6 +312,6 @@ camera has no zoom yet, no physics engine beyond AABB + gravity.
   particles cap, assets/embedding, **Exporting AND a new Publishing chapter**
   (itch.io step-by-step, GitHub + Pages, file distribution, branding), limitations incl.
   the doc-accuracy lesson.
-- **Credit**: Jaynard Jake Urban Onarag (@nardjay) added to docs header + footer +
+- **Credit**: Jaynard (@nardjay) added to docs header + footer +
   License chapter, README author line, and the LICENSE copyright itself
   (was "contributors").
