@@ -7,3 +7,9 @@ Thumbs.db
 *.log
 tmp/
 audit-*.html
+
+# itch experiment leftovers
+itchtest/
+itchtest.html
+*.zip
+cover.png
