@@ -30,6 +30,9 @@ export class GameRuntime {
 
   resetState() {
     this.project = deepClone(this.source);
+    this._gameUpdateBroken = false;
+    this._gameUpdateErrors = 0;
+    for (const o of this.project.objects) o.codeScripts?.forEach(s => { s._broken = false; });
     this.values = new Map(this.project.variables.map(v => [v.id, v.value]));
     this.textOverrides = new Map(); // objectId -> runtime text override
     for (const o of this.project.objects) {
@@ -622,7 +625,7 @@ export class GameRuntime {
           this.onError(`Game script "On update" error: ${err.message || err}`);
         }, this.project.scripts.lang || 'js');
       this._gameUpdateErrors = this._frameErr ? (this._gameUpdateErrors || 0) + 1 : 0;
-      if (this._gameUpdateErrors === 5) { this._gameUpdateBroken = true; this.onError('Game script "On update" disabled after 5 bad frames — press Reset or fix the code'); }
+      if (this._gameUpdateErrors >= 5 && !this._gameUpdateBroken) { this._gameUpdateBroken = true; this.onError('Game script "On update" disabled after 5 bad frames — press Reset or fix the code'); }
     }
     for (const obj of this.project.objects) {
       for (const s of obj.codeScripts || []) {

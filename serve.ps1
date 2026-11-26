@@ -1,7 +1,7 @@
 # 2D Engine Studio — zero-dependency local server (no Python required).
 # Uses Windows built-in PowerShell + HttpListener. Serves ONLY this folder on
 # 127.0.0.1 (never reachable from other devices) with no-store cache headers.
-param([int]$Port = 8000)
+param([int]$Port = 8000, [switch]$NoBrowser)
 
 $root = [System.IO.Path]::GetFullPath((Split-Path -Parent $MyInvocation.MyCommand.Path))
 $prefix = "http://127.0.0.1:$Port/"
@@ -17,7 +17,7 @@ try {
 }
 
 Write-Host "2D Engine Studio running at $prefix  (close this window to stop)"
-Start-Process $prefix
+if (-not $NoBrowser) { Start-Process $prefix }
 
 $mime = @{
   '.html' = 'text/html; charset=utf-8'
@@ -51,6 +51,10 @@ while ($listener.IsListening) {
 
     $path = [Uri]::UnescapeDataString($req.Url.AbsolutePath)
     if ($path -eq '/' -or $path -eq '') { $path = '/index.html' }
+    # hard rejects: drive letters / NTFS streams / colons of any kind
+    if ($path.Contains(':') -or $path.Contains("`0")) {
+      $res.StatusCode = 400; $res.Close(); continue
+    }
     $full = [System.IO.Path]::GetFullPath((Join-Path $root ($path -replace '/', '\')))
 
     # path-traversal guard: only serve files inside the app folder

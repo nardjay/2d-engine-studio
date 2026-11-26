@@ -1,265 +1,426 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>2D Engine Studio — Documentation</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Handbook — 2D Engine Studio Documentation</title>
 <style>
-  :root{--bg:#0e1118;--bg2:#151b26;--bg3:#1b2331;--border:#28313f;--text:#dde4f0;--dim:#9aa7bd;--faint:#6a7789;
-    --accent:#6290ff;--green:#9ece8f;--yellow:#e6c07b;--purple:#c586c0;--orange:#d7a86e}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px}
-  h1{font-size:26px;margin:0 0 4px}
-  h2{font-size:19px;margin:44px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
-  h3{font-size:15px;margin:26px 0 8px;color:var(--accent)}
-  p,li{color:var(--text)} .dim{color:var(--dim)} .faint{color:var(--faint);font-size:12px}
-  code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
-  pre{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.55}
-  pre code{background:none;border:none;padding:0}
-  .kw{color:var(--purple)} .fn{color:var(--accent)} .st{color:var(--green)} .nu{color:var(--yellow)} .cm{color:var(--faint);font-style:italic} .sp{color:var(--orange);font-weight:600}
-  table{border-collapse:collapse;width:100%;margin:10px 0}
-  th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;font-size:13px;vertical-align:top}
-  th{background:var(--bg3)}
-  td code{white-space:nowrap}
-  .toc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin:18px 0}
-  .toc a{color:var(--accent);text-decoration:none;margin-right:16px;font-size:13px;display:inline-block}
-  .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:10px 0}
-  .sig{font-family:ui-monospace,Consolas,monospace;color:var(--accent);font-size:13px}
-  .badge{display:inline-block;background:var(--bg3);border:1px solid var(--border);color:var(--dim);border-radius:4px;font-size:11px;padding:1px 7px;margin-left:6px}
-  a{color:var(--accent)}
+  :root {
+    --bg: #0b0f1a; --panel: #141b2b; --panel2: #1b2438; --line: #26314a;
+    --text: #dfe5f1; --dim: #9aa7bd; --accent: #4f8cff; --cyan: #7df9ff;
+    --good: #9be89b; --warn: #ffd76e; --bad: #ff8fa3; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.7 system-ui, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; gap: 16px; padding: 13px 22px;
+    background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+  header .brand { font-size: 17px; font-weight: 800; }
+  header .brand span { color: var(--cyan); }
+  header a.home { margin-left: auto; color: var(--dim); text-decoration: none; font-size: 13px; }
+  header a.home:hover { color: var(--cyan); }
+  main { display: flex; max-width: 1180px; margin: 0 auto; align-items: stretch; }
+  #toc { width: 285px; flex: 0 0 285px; padding: 18px 12px 60px 18px; position: sticky; top: 57px;
+    max-height: calc(100vh - 57px); overflow-y: auto; }
+  .toc-group { margin-bottom: 14px; }
+  .toc-group h3 { margin: 4px 6px 6px; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--dim); }
+  .toc-btn { display: block; width: 100%; text-align: left; padding: 7px 10px; margin: 2px 0;
+    border-radius: 8px; border: 1px solid transparent; background: none; color: var(--text);
+    cursor: pointer; font-size: 13px; }
+  .toc-btn:hover { background: var(--panel); border-color: var(--line); }
+  .toc-btn.on { background: var(--panel2); border-color: var(--accent); }
+  .toc-btn .num { color: var(--dim); font-size: 11px; font-family: monospace; margin-right: 7px; }
+  #content { flex: 1; min-width: 0; padding: 26px 34px 90px; border-left: 1px solid var(--line); }
+  .page h2 { font-size: 25px; margin: 0 0 2px; }
+  .page .tagline { color: var(--cyan); font-size: 13.5px; margin-bottom: 20px; }
+  .page h3 { margin: 26px 0 8px; font-size: 16px; color: var(--warn); }
+  .page p, .page li { color: #c7d0e2; }
+  .page ul, .page ol { padding-left: 22px; }
+  .page code { background: #0b1322; color: #9fdcff; padding: 1px 6px; border-radius: 5px;
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; }
+  .page pre { background: #0b1322; border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 14px; overflow-x: auto; font-family: "Cascadia Code", Consolas, monospace;
+    font-size: 12.5px; color: #b8d4ff; line-height: 1.55; }
+  .callout { border-left: 3px solid var(--accent); background: var(--panel); padding: 10px 14px;
+    border-radius: 0 8px 8px 0; margin: 14px 0; color: #c7d0e2; font-size: 13px; }
+  .callout.warn { border-color: var(--warn); }
+  .callout.bad { border-color: var(--bad); }
+  .callout.good { border-color: var(--good); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 12px 0; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--panel2); color: var(--cyan); }
+  td code { background: #0b1322; color: #9fdcff; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .pager { display: flex; gap: 10px; margin-top: 36px; }
+  .pager button { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--panel2); color: var(--text); cursor: pointer; font-size: 13px; }
+  .pager button:hover { border-color: var(--accent); }
+  @media (max-width: 900px) { main { flex-direction: column; } #toc { width: auto; position: static; max-height: none; } #content { border-left: none; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>2D Engine Studio</h1>
-  <div class="dim">Documentation — everything the engine can do, in one page. Open <code>index.html</code> and press Play.</div>
+<header>
+  <div class="brand">📘 <span>2D Engine Studio</span> — The Handbook</div>
+  <a class="home" href="index.html">← back to the studio</a>
+</header>
 
-  <div class="toc">
-    <a href="#start">Quick Start</a>
-    <a href="#editor">Editor Tour</a>
-    <a href="#objects">Objects</a>
-    <a href="#vars">Variables</a>
-    <a href="#events">Events</a>
-    <a href="#api">Script API</a>
-    <a href="#lua">Lua</a>
-    <a href="#self">self &amp; properties</a>
-    <a href="#loop">Game Loop</a>
-    <a href="#keys">Keyboard</a>
-    <a href="#examples">Ideas</a>
-    <a href="#shortcuts">Shortcuts</a>
-  </div>
+<main>
+  <aside id="toc"></aside>
+  <section id="content"><div id="page"></div></section>
+</main>
 
-  <h2 id="start">Quick Start</h2>
-  <ol>
-    <li>Create a project with <b>New Project</b>, then drag objects from the palette.</li>
-    <li>Drag objects from the palette onto the canvas, or use the <b>+</b> buttons.</li>
-    <li>Select an object → set its properties on the right (size, color, text, rotation…).</li>
-    <li>Add code: Explorer → object → <b>+</b> → <i>Add Script</i> (On create / Every frame / On click).</li>
-    <li>Press <b>▶ Play</b> — the Game tab runs your game live. Console tab shows <code>log()</code> output and errors.</li>
-    <li>Everything autosaves to your browser (IndexedDB). Export gives a standalone HTML file.</li>
-  </ol>
+<script>
+// School-style documentation: chapters (grades), read in order or jump around.
+const PAGES = [
+  // ─── GRADE 1: BEGINNER ───
+  { group: 'Grade 1 · Beginner', num: '1.1', id: 'what', title: 'What is 2D Engine Studio?', html: `
+    <p><b>2D Engine Studio</b> is a complete game engine that lives in your browser. You build
+    games by placing <b>objects</b> on a canvas, wiring up <b>variables</b>, and writing small
+    <b>scripts</b> in JavaScript or Lua. When the game feels good, you press <b>Export</b> and get a
+    single standalone <code>.html</code> file — your finished game, ready to send to anyone.</p>
+    <h3>What kind of engine is it?</h3>
+    <ul>
+      <li>An <b>editor</b>, not an arcade. It ships empty on purpose — every game inside it is yours.
+          (Earlier versions bundled demo games; they were removed so the studio is judged as a tool,
+          not a gallery. All the capabilities those demos used are still in the engine, documented here.)</li>
+      <li><b>2D first.</b> Sprites, physics, particles, cameras, scenes — plus CSS-3D tilt
+          (rotX/rotY/z) on every object for fake-3D effects.</li>
+      <li><b>Local & private.</b> Runs on your machine via a tiny PowerShell server
+          (<code>start.bat</code> → <code>http://127.0.0.1:8000</code>). No accounts, no cloud,
+          no analytics. Your projects live in your browser's IndexedDB.</li>
+      <li><b>Free.</b> MIT licensed — see the License chapter.</li>
+    </ul>
+    <h3>The three pillars</h3>
+    <table>
+      <tr><th>Pillar</th><th>What it is</th><th>Chapter</th></tr>
+      <tr><td><b>Objects</b></td><td>Everything visible or hittable: shapes, buttons, images, triggers, emitters…</td><td>2.1</td></tr>
+      <tr><td><b>Variables</b></td><td>The game's memory: score, health, flags — bound to counters, bars, toggles</td><td>2.2</td></tr>
+      <tr><td><b>Scripts</b></td><td>Code that runs on events: onStart, onUpdate, onClick, onKey, onScene</td><td>2.3</td></tr>
+    </table>
+    <h3>What can you build?</h3>
+    <p>Clickers, platformers, puzzle games, shooters, card games, racing (fake-3D), tower
+    defense, breakout, snake, flappy — anything 2D that fits in a browser tab. The
+    Limitations chapter is honest about what does <i>not</i> fit (multiplayer, true 3D).</p>` },
 
-  <h2 id="editor">Editor Tour</h2>
-  <table>
-    <tr><th>Area</th><th>What it does</th></tr>
-    <tr><td>Top bar</td><td>Project name, undo/redo, save, play/stop, preview window, <b>settings</b> (volume, gravity scale, start scene…), game code, export.</td></tr>
-    <tr><td>Explorer (left)</td><td>Tree of all objects + their scripts + the <b>Game</b> node (On start / On update). Right-click anything for actions.</td></tr>
-    <tr><td>Properties (right)</td><td>All settings of the selected object. Sections collapse. Quick-align buttons center objects.</td></tr>
-    <tr><td>Scene / Game tabs (center)</td><td>Scene = editor canvas (drag, select, zoom, pan). Game = live play.</td></tr>
-    <tr><td>Bottom dock</td><td>Variables, Events, Assets, Console. Drag the thin dividers to resize panels (double-click a divider to reset).</td></tr>
-    <tr><td>Zoom</td><td>Mouse wheel zooms smoothly at the cursor. <b>+/−</b> buttons animate. The dropdown picks exact numbers (10–600%).</td></tr>
-  </table>
+  { group: 'Grade 1 · Beginner', num: '1.2', id: 'install', title: 'Installing & starting', html: `
+    <h3>Requirements</h3>
+    <ul><li>Windows 10/11 (PowerShell is built in) · any modern Chromium browser (Chrome/Edge).</li>
+        <li>That's it. No Python, no Node, no installs. (Python is only a fallback in <code>start.bat</code>.)</li></ul>
+    <h3>Start</h3>
+    <pre>double-click  start.bat
+→ a console window opens, the browser opens http://127.0.0.1:8000
+→ close the console window to stop the studio</pre>
+    <p>The server is <code>serve.ps1</code>, a ~60-line PowerShell HTTP listener. It:</p>
+    <ul>
+      <li>binds <b>127.0.0.1 only</b> — nothing on your network can reach it;</li>
+      <li>blocks path traversal and drive-letter tricks (403/400);</li>
+      <li>hides <code>.git</code> and sends <code>Cache-Control: no-store</code> so you always
+          get the latest code after an update (if something looks wrong, still Ctrl+Shift+R).</li>
+    </ul>
+    <h3>Your data & ownership</h3>
+    <p>Projects save automatically in browser <b>IndexedDB</b> (<code>2dengine-studio</code>).
+    The dashboard's <b>Data ▾</b> menu gives you full ownership:</p>
+    <ul>
+      <li><b>Download all data</b> — every project as one JSON file (keep backups!);</li>
+      <li><b>Import data</b> — restores a backup without overwriting existing projects;</li>
+      <li><b>Delete ALL projects</b> — with confirmation;</li>
+      <li>each card's <b>Download Game</b> exports that game as standalone HTML directly.</li>
+    </ul>
+    <div class="callout warn">Browser “clear browsing data” also clears your projects.
+    The JSON backup is your safety net.</div>` },
 
-  <h2 id="objects">Objects</h2>
-  <table>
-    <tr><th>Type</th><th>Purpose</th><th>Key properties</th></tr>
-    <tr><td><b>Button</b></td><td>Clickable; can act as a shop/upgrade item</td><td>text, colors, cost variable + purchase amount</td></tr>
-    <tr><td><b>Text</b></td><td>Labels</td><td>text with <code>{{Variable}}</code> interpolation, font size, bold/italic, color</td></tr>
-    <tr><td><b>Image</b></td><td>From the Assets panel</td><td>asset, fit mode</td></tr>
-    <tr><td><b>Panel</b></td><td>Background boxes</td><td>color, radius</td></tr>
-    <tr><td><b>Shape</b></td><td>rect / ellipse / triangle / diamond / pentagon / hexagon / <b>star</b> / <b>arrow</b> — players, balls, enemies</td><td>kind, color, rotation; ellipse-vs-ellipse collisions are true circles</td></tr>
-    <tr><td><b>Progress bar</b></td><td>Visualizes a variable 0–100</td><td>variable, colors</td></tr>
-    <tr><td><b>Counter</b></td><td>Shows a number with prefix/suffix</td><td>variable, format</td></tr>
-    <tr><td><b>Trigger Zone</b></td><td>invisible at Play; watches a target object, fires <b>On enter / On exit</b> with <code>other</code> = the crossing object</td><td>targetName</td></tr>
-    <tr><td><b>Emitter</b></td><td>particle fountain — sparks, torches, rain</td><td>rate, life, speed, angle, spread, size, gravity, colors</td></tr>
-    <tr><td><b>Timer</b></td><td>Countdown or stopwatch, shown as 0:30</td><td>mode, seconds, auto-start</td></tr>
-    <tr><td><b>Input / Slider / Toggle</b></td><td>Player data entry</td><td>bound variable, range</td></tr>
-  </table>
+  { group: 'Grade 1 · Beginner', num: '1.3', id: 'tour', title: 'The editor tour', html: `
+    <ul>
+      <li><b>Top bar</b> — project name · save/undo/redo · <b>▶ Play</b> · restart · <b>■ Stop</b> ·
+          play-in-window · <b>&lt;/&gt; Scripts</b> · <b>⤒ Export</b> · ⚙ settings.</li>
+      <li><b>Left palette</b> — the 13 object types. Drag one onto the canvas (or right-click the canvas).</li>
+      <li><b>Scene / Game tabs</b> — Scene is the workshop (grid, selection, zoom); Game is the live game.</li>
+      <li><b>Scene pills</b> — <code>main +</code>: multiple scenes/levels; each object belongs to one.</li>
+      <li><b>Explorer</b> — all objects & script hooks, searchable; right-click rows for
+          duplicate / delete / group / bring-to-front.</li>
+      <li><b>Properties</b> — the inspector for the selection: transform, style, physics,
+          bindings, custom fields.</li>
+      <li><b>Bottom dock</b> — Variables · Events · Assets · Console. Console shows your
+          <code>print()</code> output and errors (identical lines collapse into ×N).</li>
+    </ul>
+    <h3>Controls cheat</h3>
+    <table>
+      <tr><th>Action</th><th>How</th></tr>
+      <tr><td>Add object</td><td>drag from palette, or right-click canvas</td></tr>
+      <tr><td>Multi-select</td><td>Shift+click, or drag a selection box</td></tr>
+      <tr><td>Group / ungroup</td><td>right-click selection → Group</td></tr>
+      <tr><td>Duplicate / delete</td><td>Ctrl+D / Del</td></tr>
+      <tr><td>Undo / redo</td><td>Ctrl+Z / Ctrl+Y (50 steps)</td></tr>
+      <tr><td>Zoom</td><td>toolbar 25%…400% in ¼ steps — always sharp</td></tr>
+      <tr><td>Nudge</td><td>arrow keys (Shift = 10px); groups move together</td></tr>
+    </table>` },
 
-  <h2 id="vars">Variables</h2>
-  <p>Game memory: numbers, text, booleans. Counters/progress bars/sliders/toggles bind to them, texts show them with <code>{{Name}}</code>, and scripts read/write them. You never need to pre-create one: <code>set("Coins", 5)</code> creates <b>Coins</b> automatically.</p>
+  // ─── GRADE 2: CORE ───
+  { group: 'Grade 2 · Core', num: '2.1', id: 'objects', title: 'Objects', html: `
+    <p>Every object shares: <b>name</b> (how scripts find it), <b>x/y/w/h</b>, <b>scene</b>,
+    <b>layer</b>, <b>visible</b>, plus style extras (border, radius, shadow, opacity,
+    rotation, <b>rotX/rotY/z</b>, tags, custom fields). Physics fields (<b>gravity, vx, vy,
+    bounce</b>) exist on <i>every</i> type.</p>
+    <table>
+      <tr><th>Type</th><th>Purpose</th><th>Notable fields</th></tr>
+      <tr><td><b>button</b></td><td>Clickable action; can carry a cost and buy</td><td>text, cost, costVarId</td></tr>
+      <tr><td><b>text</b></td><td>Label; binds to a variable and formats it</td><td>text, variableId, prefix</td></tr>
+      <tr><td><b>image</b></td><td>Uploaded art (PNG/JPG/SVG); also canvas backgrounds</td><td>src, fit</td></tr>
+      <tr><td><b>panel</b></td><td>Styled box for UI clusters (group it!)</td><td>bg, radius</td></tr>
+      <tr><td><b>progressbar</b></td><td>Fills according to a variable vs max</td><td>valueVarId, maxValue</td></tr>
+      <tr><td><b>counter</b></td><td>Live number display</td><td>variableId, prefix</td></tr>
+      <tr><td><b>shape</b></td><td>rect / ellipse / triangle / line — the workhorse sprite</td><td>kind + full physics</td></tr>
+      <tr><td><b>input</b></td><td>Player text entry</td><td>placeholder; read via <code>value()</code></td></tr>
+      <tr><td><b>slider</b></td><td>Drag-value; writes into a variable</td><td>min, max, variableId</td></tr>
+      <tr><td><b>toggle</b></td><td>On/off switch bound to a variable — numbers flip <b>0↔1</b></td><td>variableId</td></tr>
+      <tr><td><b>timer</b></td><td>Countdown/stopwatch; fires onExpire</td><td>seconds, autoStart</td></tr>
+      <tr><td><b>trigger</b></td><td>Invisible zone running code on entry</td><td>targetName, mode: once/every/enter</td></tr>
+      <tr><td><b>emitter</b></td><td>Continuous particle fountain</td><td>rate, life, speed, angle, spread, colors</td></tr>
+    </table>
+    <div class="callout">Naming matters: scripts call <code>obj("Player")</code>. The Explorer
+    search and right-click menus make renames painless. Duplicate names are auto-avoided.</div>` },
 
-  <h2 id="events">Events (no-code)</h2>
-  <p>Optional trigger chains: “on click → add to variable / set text / play sound / run a code snippet”. If you like coding, ignore events and use scripts — they do strictly more.</p>
+  { group: 'Grade 2 · Core', num: '2.2', id: 'variables', title: 'Variables', html: `
+    <p>Bottom dock → <b>Variables</b> → <i>+ Add Variable</i>. Types: <b>number</b> and <b>text</b>.
+    The “Used in” column counts which scripts reference each one.</p>
+    <h3>Script side</h3>
+    <pre>set("Score", 0)          get("Score")           add("Score", 10)
+set("Name", "Zed")       has("Score")           toggleVar("PowerOn")</pre>
+    <h3>Object side (zero code)</h3>
+    <ul>
+      <li><b>counter / text</b> display a variable live;</li>
+      <li><b>progressbar</b> = variable ÷ maxValue;</li>
+      <li><b>slider / toggle</b> write into a variable (toggle on a number flips 0↔1 —
+          a light switch made of math);</li>
+      <li><b>button</b> with cost fields spends a variable and fires its click script only
+          when affordable. There is no special “upgrade object” — it's a button + variables,
+          which means you can have any economy you want.</li>
+    </ul>
+    <div class="callout good">Golden rule: the <b>variable</b> is the truth, the object is a
+    window onto it. Scripts change variables; bound objects update themselves.</div>` },
 
-  <h2 id="api">Script API — full reference</h2>
-  <p class="dim">Available in every script, no imports needed. Scripts are <b>async</b>: <code>await</code> works.</p>
+  { group: 'Grade 2 · Core', num: '2.3', id: 'scripting', title: 'Scripting (JS & Lua)', html: `
+    <p>Press <b>&lt;/&gt; Scripts</b>. Game hooks:</p>
+    <table>
+      <tr><th>Hook</th><th>Fires</th><th>Extras</th></tr>
+      <tr><td><code>onStart</code></td><td>once per (re)start</td><td>init your variables here</td></tr>
+      <tr><td><code>onUpdate</code></td><td>every frame</td><td><code>dt</code> = seconds since last frame</td></tr>
+      <tr><td><code>onClick</code></td><td>stage click</td><td><code>x</code>, <code>y</code></td></tr>
+      <tr><td><code>onKey</code></td><td>key press</td><td><code>key</code></td></tr>
+      <tr><td><code>onScene</code></td><td>after gotoScene()</td><td><code>to</code>, <code>from</code> (not on boot)</td></tr>
+    </table>
+    <p>Object hooks (per-object code): <code>init · click · update · hover · unhover · enter · exit</code>.</p>
+    <h3>API you get in every script</h3>
+    <pre>obj(name)  objects()  tagged(tag)  spawn(type, props)  destroy(o)
+hide(o) show(o) setText(o,t) moveTo(o,x,y) moveBy(o,dx,dy) setSize(o,w,h)
+setColor(o,css) setOpacity(o,v) bring(o)
+collide(a,b) hits(a,b) onGround(o) vel(o)
+pressed("ArrowLeft")  key("w")  mouse.x mouse.y mouse.down mouse.justDown
+cam.moveTo(x,y)  cam.follow(o, stiff)  cam.zoom
+emit(x,y,n,{color,speed,life})  gotoScene(name)  beep(freq,ms)  play(file)
+set get add print …  and your own variables by name</pre>
+    <h3>Lua</h3>
+    <p>The Scripts editor has a language switch (per project). Lua exposes the identical API:</p>
+    <pre>function onUpdate(dt)
+  if pressed("Space") and onGround("Player") then
+    obj("Player").vy = -520
+  end
+end</pre>
+    <h3>Blocks (no-code)</h3>
+    <p>The <b>Events</b> tab builds the same behavior from trigger→condition→action blocks;
+    blocks compile down to the same runtime calls scripts use.</p>
+    <div class="callout warn">Safety nets: an <code>onUpdate</code> that errors is
+    <b>disabled after 5 bad frames</b> with a console hint (Reset or a code edit re-arms it);
+    object scripts disable after one error; the console collapses repeats into ×N so spam
+    can't flood you. The classic cause of <code>Unknown object</code> is deleting an object
+    while a script still references it — or referencing an object you forgot to create.</div>` },
 
-  <h3>Variables</h3>
-  <table>
-    <tr><th>Call</th><th>Does</th></tr>
-    <tr><td><code>get("Coins")</code></td><td>Read a variable.</td></tr>
-    <tr><td><code>set("Coins", 50)</code></td><td>Write it — creates the variable if it doesn't exist.</td></tr>
-    <tr><td><code>add("Coins", 10)</code> / <code>subtract("Coins", 5)</code></td><td>± a number.</td></tr>
-    <tr><td><code>multiply("Per click", 2)</code></td><td>× a number.</td></tr>
-    <tr><td><code>increase("Level")</code> / <code>decrease("Lives")</code></td><td>+1 / −1.</td></tr>
-    <tr><td><code>toggleVar("Paused")</code></td><td>Flip a boolean.</td></tr>
-    <tr><td><code>vars()</code></td><td>Snapshot of all variables as an object.</td></tr>
-  </table>
+  // ─── GRADE 3: WORLD ───
+  { group: 'Grade 3 · World', num: '3.1', id: 'physics', title: 'Physics & collisions', html: `
+    <p>Set on any object via Inspector or scripts:</p>
+    <ul>
+      <li><b>gravity</b> px/s² (1400 feels good for platformers), <b>vx/vy</b> velocity,
+          <b>bounce</b> off world edges and bodies.</li>
+      <li><b>collide(a,b)</b> — overlapping right now; <b>hits(a,b)</b> — true only on the
+          first frame of contact (coins!); <b>onGround(o)</b> — resting on something.</li>
+      <li>Depenetration is real: an object spawned inside a floor is pushed out, and scene
+          entry re-checks it so you never teleport into solid ground.</li>
+      <li>Cost: ~2 ms/frame for 50 bodies. Boxes only — no per-pixel, no joints/ropes.</li>
+    </ul>
+    <h3>Platformer recipe</h3>
+    <pre>onStart:  set("Lives", 3);  cam.follow(obj("Player"), 8)
+onUpdate: if pressed("ArrowLeft")  then obj("Player").vx = -260
+          if pressed("ArrowRight") then obj("Player").vx =  260
+          if key("Space") and onGround("Player") then obj("Player").vy = -520
+onUpdate: if hits("Player", "Coin") then add("Score", 1); destroy(obj("Coin")) end</pre>` },
 
-  <h3>Objects — find &amp; change</h3>
-  <table>
-    <tr><th>Call</th><th>Does</th></tr>
-    <tr><td><code>obj("Ball")</code></td><td>Live handle by name (or id). Change anything: <code>obj("Ball").x = 100</code>.</td></tr>
-    <tr><td><code>objects()</code></td><td>Array of all live objects — great for loops.</td></tr>
-    <tr><td><code>hide("Ball")</code> / <code>show("Ball")</code> / <code>toggleVisible("Ball")</code></td><td>Visibility.</td></tr>
-    <tr><td><code>setText("Label", "Hi " + get("Score"))</code><br>Lua: <code>setText("Label", "Hi " .. get("Score"))</code></td><td>Change any text/counter/button caption. On a counter this replaces the whole readout.</td></tr>
-    <tr><td><code>moveTo("Ball", 100, 200)</code> / <code>moveBy("Ball", 10, 0)</code></td><td>Position (absolute / relative).</td></tr>
-    <tr><td><code>setSize("Ball", 80, 80)</code></td><td>Width &amp; height.</td></tr>
-    <tr><td><code>setProperty("Ball", "rotation", 45)</code></td><td>Any property by name.</td></tr>
-    <tr><td><code>setColor("Btn", "#ff0000")</code> / <code>setTextColor("Lbl", "#fff")</code> / <code>setOpacity("Ghost", 0.5)</code></td><td>Look.</td></tr>
-    <tr><td><code>bring("Ball")</code></td><td>Move to the top layer.</td></tr>
-    <tr><td><code>spawn("shape", { x: 40, y: 40, w: 30, kind: "ellipse", bg: "red" })</code></td><td>Create an object at runtime. <b>Returns a live object handle</b> for immediate property assignment: <code>local enemy = spawn("shape", {...}); enemy.x = 50</code>.</td></tr>
-    <tr><td><code>destroy("Bullet1")</code> or <code>destroy(handle)</code></td><td>Remove an object.</td></tr>
-  </table>
+  { group: 'Grade 3 · World', num: '3.2', id: 'camera', title: 'Camera, scenes & groups', html: `
+    <h3>Camera</h3>
+    <p>The <b>stage</b> (Settings → width/height) is your world; the viewport is the window.
+    <code>cam.moveTo(x,y)</code> teleports, <code>cam.follow(obj, stiffness)</code> chases,
+    <code>cam.zoom</code> is quantized to stay sharp. Objects outside view are culled.</p>
+    <h3>Scenes</h3>
+    <p>Scene pills above the canvas: <code>main +</code>. Each object belongs to a scene;
+    only the active scene renders. <code>gotoScene("cave")</code> switches (from scripts or a
+    trigger's action). Tick <b>persist</b> on an object (your player!) and it travels between
+    scenes. The first scene is the boot scene; <code>onScene</code> fires on real switches,
+    not on boot.</p>
+    <h3>Groups</h3>
+    <p>Select several objects → right-click → <b>Group</b>. Clicking any member selects all;
+    nudging, rotating and proportional scaling apply to the whole group with one pivot.
+    Vehicles, castles, HUD clusters. <b>Ungroup</b> anytime.</p>` },
 
-  <h3>Timers</h3>
-  <table>
-    <tr><td><code>timerStart("Clock")</code> / <code>timerStop("Clock")</code> / <code>timerSet("Clock", 30)</code></td><td>Control a Timer object. Read <code>obj("Clock").seconds</code>.</td></tr>
-  </table>
+  { group: 'Grade 3 · World', num: '3.3', id: 'fx', title: 'Particles, triggers & sound', html: `
+    <h3>Emitters & emit()</h3>
+    <pre>emit(200, 400, 12, { color: "#7df9ff", speed: 90, life: 0.5 })</pre>
+    <p>Emitter objects puff continuously (rate/life/speed/angle/spread/colors). Budget:
+    keep <b>live particles under ~260</b> — the pool is DOM-based; bursts beat streams.</p>
+    <h3>Triggers</h3>
+    <p>Invisible zones with modes <b>once</b> (checkpoint), <b>every</b> (respawn),
+    <b>enter</b> (door). Actions: run script, change scene, set variables.</p>
+    <h3>Sound</h3>
+    <p><code>beep(freq, ms)</code> for retro pings; upload audio in Assets and
+    <code>play("file.mp3")</code>. Volume/mute in Settings. One channel per sound —
+    no mixing.</p>
+    <h3>Touch</h3>
+    <p>Automatic: taps map to mouse events, so exported games play on phones with no extra work.</p>` },
 
-  <h3>Sound &amp; flow</h3>
-  <table>
-    <tr><td><code>beep(440, 80)</code></td><td>Tone at frequency (Hz) for milliseconds. No audio files needed.</td></tr>
-    <tr><td><code>await wait(1.5)</code></td><td>Pause this script (seconds). The game keeps running.</td></tr>
-    <tr><td><code>cancel()</code></td><td>In <i>On click</i>: stop — skips events &amp; button purchase.</td></tr>
-    <tr><td><code>log(anything)</code></td><td>Print to the Console tab.</td></tr>
-  </table>
+  // ─── GRADE 4: SHIP IT ───
+  { group: 'Grade 4 · Ship it', num: '4.1', id: 'export', title: 'Exporting & publishing', html: `
+    <p><b>⤒ Export</b> produces one standalone HTML file (~85 KB + your assets): the same
+    runtime class, none of the editor. It works offline from a USB stick, e-mail, Discord
+    or itch.io. Uploaded images/audio are embedded as data URLs.</p>
+    <ul>
+      <li>Dashboard cards also have <b>Download Game</b> — export without opening the editor.</li>
+      <li>Exported games keep <b>Save/Load slots</b> (localStorage per project id).</li>
+      <li><b>Hosting caveat</b>: the script compiler uses <code>new Function</code>, so hosts with
+          strict CSP (<code>unsafe-eval</code> blocked) will refuse it. itch.io and normal static
+          hosts are fine; locked-down school networks may not be.</li>
+    </ul>` },
 
-  <h3>Random &amp; math</h3>
-  <table>
-    <tr><td><code>rand(1, 6)</code></td><td>Decimal random in range.</td></tr>
-    <tr><td><code>randInt(1, 6)</code></td><td>Integer random (dice!).</td></tr>
-    <tr><td><code>chance(0.25)</code></td><td>true 25% of the time.</td></tr>
-    <tr><td><code>pick(["a","b","c"])</code></td><td>Random element.</td></tr>
-    <tr><td><code>clamp(v, min, max)</code></td><td>Keep v inside a range.</td></tr>
-  </table>
+  { group: 'Grade 4 · Ship it', num: '4.2', id: 'limits', title: 'Limitations (the honest page)', html: `
+    <table>
+      <tr><th>Not possible</th><th>Why / workaround</th></tr>
+      <tr><td>Multiplayer</td><td>Deliberately local & private — no backend. Hot-seat instead.</td></tr>
+      <tr><td>True 3D</td><td>rotX/rotY/z is CSS-3D on 2D quads: card flips, fake-3D racers, tilt — not Doom.</td></tr>
+      <tr><td>Per-pixel collision</td><td>Boxes only; shrink hitboxes to fake precision.</td></tr>
+      <tr><td>&gt;260 live particles</td><td>DOM pool ceiling; burst instead of stream.</td></tr>
+      <tr><td>Ropes / joints</td><td>No constraints system; script chains of objects if desperate.</td></tr>
+      <tr><td>Audio mixing</td><td>One channel per sound; no ducking/effects.</td></tr>
+    </table>
+    <h3>Works, but watched</h3>
+    <ul>
+      <li><b>Firefox/Safari</b> — not yet smoke-tested (Chromium verified); report issues.</li>
+      <li><b>Explorer</b> windows the list past 300 loose objects (search bypasses the cap).</li>
+      <li>Full bug log with fixes: <code>docs/limitations.md</code> — we keep the scars visible.</li>
+    </ul>` },
 
-  <h3>Input · persistence · scenes · game flow</h3>
-  <table>
-    <tr><th>Call</th><th>Does</th></tr>
-    <tr><td><code>key("a")</code> / <code>pressed("space")</code></td><td>Held now / tapped this frame (edge-triggered).</td></tr>
-    <tr><td><code>mouse.x · mouse.y · mouse.down</code></td><td>Pointer in stage coordinates (always exists).</td></tr>
-    <tr><td><code>changed("Score")</code></td><td>true the frame a variable changed value.</td></tr>
-    <tr><td><code>save("best", { n: 12 })</code> / <code>load("best")</code></td><td>Persistent storage per project — survives refreshes.</td></tr>
-    <tr><td><code>play("theme.mp3", 0.8)</code></td><td>Play an imported sound asset.</td></tr>
-    <tr><td><code>touching("Ball", "Paddle")</code></td><td>Collision test. Ellipse pairs use true circle math; everything else is box.</td></tr>
-    <tr><td><code>clone("Star")</code></td><td>Deep-copy an object, returns a live handle.</td></tr>
-    <tr><td><code>gotoScene("menu")</code> / <code>currentScene()</code></td><td>Scene = visibility group; every object has a Scene field.</td></tr>
-    <tr><td><code>restart()</code></td><td>Replay from On start — the game-over “press SPACE” button.</td></tr>
-    <tr><td><code>pcall(f)</code> / <code>error("msg")</code> / <code>warn(x)</code></td><td>Guarded calls &amp; console output.</td></tr>
-    <tr><td><code>dt · time · self</code></td><td>Frame seconds · seconds since play · script owner (object or Game brain).</td></tr>
-  </table>
-  <p class="dim">⚠ <b>self scope rule:</b> in an object's script <code>self</code> is that object;
-  in Game On start/On update <code>self</code> is a persistent brain. To share state between
-  many objects, use one hidden <b>Brain</b> panel object to keep arrays and helper functions.</p>
+  { group: 'Grade 4 · Ship it', num: '4.3', id: 'license', title: 'License', html: `
+    <h3>In plain words</h3>
+    <ul>
+      <li><b>Everything you make with the studio is yours</b> — including games you sell.</li>
+      <li>The engine source is <b>MIT</b>: use it, copy it, modify it, redistribute it —
+          just keep the copyright notice when you share the source.</li>
+      <li><b>No warranty</b>, as usual for free software. No data collection, ever.</li>
+    </ul>
+    <h3>The full text (LICENSE file)</h3>
+    <pre id="license-text">Loading…</pre>` },
 
-  <h3>Performance &amp; safety notes</h3>
-  <table>
-    <tr><td><b>O(1) lookups</b></td><td><code>obj()</code> uses an internal name index (rebuilt only on spawn/destroy/rename). For hot loops, cache the handle: <code>local ball = obj("Ball")</code> once, then <code>ball.x += 10 * dt</code>.</td></tr>
-    <tr><td>⚠️ <b>Shadowing</b></td><td>Do <b>not</b> name your own variables/functions after API commands (<code>get</code>, <code>set</code>, <code>obj</code>, <code>wait</code>, <code>spawn</code>…). Your declaration overwrites the engine command in that script scope — silent failure.</td></tr>
-    <tr><td><b>Dot notation</b></td><td>Engine objects use direct dot access in <i>both</i> languages (<code>self.x</code>, <code>obj("Ball").visible</code>). Lua colon syntax (<code>:</code>) is not required — full JS parity.</td></tr>
-    <tr><td><b>Async wait</b></td><td><code>wait()</code> compiles to JS <code>await</code>: pauses only that script; the game loop keeps running.</td></tr>
-  </table>
+  // ─── ELECTIVES ───
+  { group: 'Electives', num: 'E.1', id: 'ideas', title: 'Ideas to build (ladder)', html: `
+    <h3>Easy — learn the loop</h3>
+    <ul><li><b>Clicker</b>: button + cost fields + counter + progressbar. One variable.</li>
+        <li><b>Reaction test</b>: timer + onKey + text.</li>
+        <li><b>Dice / coinflip</b>: <code>spawn</code>… no — <code>Math.random()</code> + setText.</li></ul>
+    <h3>Medium — learn physics & input</h3>
+    <ul><li><b>Pong</b>: two shapes, bounce, mouse.y paddle.</li>
+        <li><b>Flappy</b>: gravity + tap impulse + pipe spawner (emitter of shapes? no — <code>spawn()</code> in onUpdate).</li>
+        <li><b>Breakout</b>: hits() + destroy + score variable.</li>
+        <li><b>Snake</b>: array in a variable, grid math, one shape per segment.</li></ul>
+    <h3>Hard — learn the world</h3>
+    <ul><li><b>Platformer</b>: cam.follow + triggers + scenes + persist flag.</li>
+        <li><b>Fake-3D racer</b>: rows of shapes with rotX + speed-scaled z.</li>
+        <li><b>Tower defense</b>: groups for turrets, emitters for muzzle flash, timers for waves.</li>
+        <li><b>Card game</b>: rotY flips with CSS-3D — the easter egg's tech, for real.</li></ul>` },
 
-  <h2 id="lua">Lua — same engine, easier language</h2>
-  <p>Any script tab has a <b>JavaScript / Lua</b> dropdown. Lua is compiled to JS at Play time
-  by <code>js/runtime/luac.js</code> (~200 readable lines — no 600 KB interpreter dependency,
-  works in the standalone export too).</p>
-  <pre><code><span class="cm">-- On click on "Mine"</span>
-local cost = math.ceil(get(<span class="st">"Per click"</span>) * <span class="nu">25</span>)
-<span class="kw">if</span> get(<span class="st">"Coins"</span>) &lt; cost <span class="kw">then</span>
-  beep(<span class="nu">160</span>, <span class="nu">90</span>)
-  <span class="kw">return</span>
-<span class="kw">end</span>
-subtract(<span class="st">"Coins"</span>, cost)
-multiply(<span class="st">"Per click"</span>, <span class="nu">2</span>)
-setText(<span class="st">"Upgrade"</span>, <span class="st">"Pickaxe x"</span> .. get(<span class="st">"Per click"</span>))</code></pre>
-  <table>
-    <tr><th>Lua</th><th>Means</th></tr>
-    <tr><td><code>local x = 5 · nil · true</code></td><td>variables, no value, booleans</td></tr>
-    <tr><td><code>{1,2,3} · {hp = 10}</code></td><td>array tables · hash tables (dicts)</td></tr>
-    <tr><td><code>if/elseif/else · while · repeat…until</code></td><td>conditions &amp; loops</td></tr>
-    <tr><td><code>for i = 1, 10 do · for v in ipairs(t) · for k, v in pairs(t)</code></td><td>all for-forms</td></tr>
-    <tr><td><code>function f(a) return a * 2 end</code></td><td>functions</td></tr>
-    <tr><td><code>a .. b · #t · ~= · and/or/not</code></td><td>concat, length, compare, logic</td></tr>
-    <tr><td><code>math.ceil/floor/abs/sqrt/min/max · table.insert/remove</code></td><td>standard library bits</td></tr>
-    <tr><td><code>pcall(f) · error("msg") · warn(x) · print(x)</code></td><td>error handling &amp; debug — e.g. <code>local ok, err = pcall(function() set("Coins", "x") end); if not ok then log("Script Error: " .. err) end</code></td></tr>
-    <tr><td><code>wait(1)</code></td><td>blocks the script only — game keeps running</td></tr>
-  </table>
-  <p class="dim">Not supported (honest): metatables, coroutines, goto, colon method calls,
-  multi-return, varargs, <code>string.format/gsub/gmatch</code>, <code>tonumber/tostring</code>.
-  <b>Fixed 2026-11:</b> <code>math.random(a,b)</code> now compiles correctly (was returning 0–1!),
-  and <code>table.insert(t, i, v)</code> / <code>table.remove(t, i)</code> positional forms work.
-  <code>a .. b</code> compiles to <code>+</code> — fine for text, but <code>1 .. 2</code> gives 3, not "12".
-  Full list: <code>docs/lua.md</code>. Switch any script tab to <b>Lua</b> — the whole API works.</p>
+  { group: 'Electives', num: 'E.2', id: 'rumor', title: 'The Rumor 🧊', html: `
+    <p>Taped to the studio's locker, in faded marker:</p>
+    <pre>↑ ↑ ↓ ↓ ← → ← → B A</pre>
+    <p>Type that sequence (the classic Konami code) anywhere in the studio — dashboard or
+    editor, not while typing in a field — and something <b>spins</b>.</p>
+    <h3>What it's advertising</h3>
+    <p>The unlocked cube is pure CSS 3D — and the engine gives the same power to every
+    object: <b>rotX</b>, <b>rotY</b> and <b>z</b> in the Inspector. Card flips, tilted signs,
+    fake-3D corridors and racers are built with those three fields. The easter egg is the
+    trailer; the properties are the movie.</p>
+    <div class="callout">Your unlock is remembered locally (<code>2dengine-studio:secret3d</code>).
+    It changes nothing else — that's what makes it an easter egg.</div>` },
 
-  <h3>Camera &amp; particles</h3>
-  <table>
-    <tr><td><code>cam.follow("Hero", 8)</code> / <code>cam.unfollow()</code> / <code>cam.moveTo(x, y)</code> / <code>cam.shake(12)</code></td><td>camera control; read/write <code>cam.x</code>/<code>cam.y</code> (parallax!)</td></tr>
-    <tr><td><code>emit(x, y, 14, { color: "#ffd76e", speed: 140, life: 0.5 })</code></td><td>one-shot particle burst, pooled &amp; capped</td></tr>
-    <tr><td><code>view()</code></td><td><code>{ width, height, worldWidth, worldHeight }</code> — set world size in Settings → GAMEPLAY</td></tr>
-    <tr><td><code>other</code></td><td>inside On enter / On exit trigger scripts: the object that crossed</td></tr>
-  </table>
+  { group: 'Reference', num: 'R.1', id: 'api', title: 'API cheat sheet', html: `
+    <h3>Hooks</h3><pre>game:   onStart · onUpdate(dt) · onClick(x,y) · onKey(key) · onScene(to,from)
+object: init · click · update · hover · unhover · enter · exit</pre>
+    <h3>Variables</h3><pre>set(k,v)  get(k)  add(k,n)  has(k)  toggleVar(k)  print(v)</pre>
+    <h3>Objects</h3><pre>obj(sel)  objects()  tagged(tag)  spawn(type,props)  destroy(o)
+hide(o) show(o) toggleVisible(o) setText(o,t) moveTo(o,x,y) moveBy(o,dx,dy)
+setSize(o,w,h) setColor(o,css) setTextColor(o,css) setOpacity(o,v) bring(o)</pre>
+    <h3>Motion</h3><pre>collide(a,b)  hits(a,b)  onGround(o)  vel(o) → {x,y}
+fields: gravity · vx · vy · bounce (on every object)</pre>
+    <h3>Camera & input</h3><pre>cam.moveTo(x,y)  cam.follow(o,stiff)  cam.zoom
+pressed(key)  key(k)  mouse.x  mouse.y  mouse.down  mouse.justDown</pre>
+    <h3>World & FX</h3><pre>emit(x,y,n,{color,speed,life})  gotoScene(name)  beep(freq,ms)  play(name)</pre>
+    <h3>Lua</h3><pre>Same API, Lua syntax — switch language in the Scripts editor.</pre>
+    <h3>Raw docs on disk</h3>
+    <p><code>docs/getting-started.md</code> · <code>docs/objects.md</code> ·
+    <code>docs/scripting-api.md</code> · <code>docs/lua.md</code> ·
+    <code>docs/limitations.md</code> · <code>docs/roadmap.md</code></p>` },
+];
 
-  <h3>Scenes, groups &amp; touch (v1.8)</h3>
-  <table>
-    <tr><td><code>gotoScene("Room 2")</code></td><td>real scenes: each has its own name, size (160×120 → 4096×4096) and background; the stage resizes when you switch</td></tr>
-    <tr><td>scene chips above the canvas</td><td>click = edit that scene · right-click = rename/resize/duplicate/delete · <code>+</code> = new scene</td></tr>
-    <tr><td><code>Ctrl+G</code> / <code>Ctrl+Shift+G</code></td><td>group / ungroup selected objects (same scene) — folders in Explorer, double-click to zoom into a group</td></tr>
-    <tr><td><code>mouse.x / mouse.y / mouse.down</code></td><td>now fed by <b>touch</b> too — every game works on phones, exports included</td></tr>
-    <tr><td>⤒ ▲ ▼ ⤓ layer buttons</td><td>layers are first-class now: Inspector, right-click menu, multi-select, L-badge in Explorer</td></tr>
-  </table>
+const $ = s => document.querySelector(s);
+const byId = id => PAGES.find(p => p.id === id);
+let cur = 0;
 
-  <h2 id="self">self, dt &amp; time</h2>
-  <pre><code><span class="cm">// On update script on a shape called "Ship"</span>
-self.x += <span class="nu">200</span> * dt;              <span class="cm">// dt = seconds since last frame (~0.016)</span>
-self.rotation = time * <span class="nu">45</span>;      <span class="cm">// time = seconds since Play</span>
-<span class="kw">if</span> (self.x &gt; <span class="nu">960</span>) hide(self.name);
-self.visible = !self.visible;    <span class="cm">// blink it</span></code></pre>
-  <p><span class="sig">self</span> = the object owning the script (in <b>Game</b> scripts it's a shared "brain" object — store your own state on it: <code>self._next = time + 2;</code>). You can read/write <code>x, y, w, h, text, visible, opacity, rotation, bg, color, seconds</code> and anything else you invent.</p>
+function renderToc() {
+  const groups = {};
+  PAGES.forEach((p, i) => { (groups[p.group] = groups[p.group] || []).push([p, i]); });
+  let html = '';
+  for (const [g, list] of Object.entries(groups)) {
+    html += '<div class="toc-group"><h3>' + g + '</h3>';
+    for (const [p, i] of list) {
+      html += '<button class="toc-btn' + (i === cur ? ' on' : '') + '" data-i="' + i + '">' +
+        '<span class="num">' + p.num + '</span>' + p.title + '</button>';
+    }
+    html += '</div>';
+  }
+  $('#toc').innerHTML = html;
+  $('#toc').querySelectorAll('.toc-btn').forEach(b => b.addEventListener('click', () => open(+b.dataset.i)));
+}
+function open(i) {
+  cur = i;
+  const p = PAGES[i];
+  $('#page').innerHTML = '<div class="page"><h2>' + p.title +
+    ' <span style="font-size:12px;color:var(--dim)">' + p.num + '</span></h2>' + p.html +
+    '<div class="pager"></div></div>';
+  const pager = $('.pager');
+  if (i > 0) { const b = document.createElement('button'); b.textContent = '← ' + PAGES[i - 1].title; b.onclick = () => open(i - 1); pager.append(b); }
+  if (i < PAGES.length - 1) { const b = document.createElement('button'); b.textContent = PAGES[i + 1].title + ' →'; b.onclick = () => open(i + 1); pager.append(b); }
+  location.hash = p.id;
+  renderToc();
+  window.scrollTo(0, 0);
+}
+renderToc();
+open(byId(location.hash.slice(1)) ? PAGES.indexOf(byId(location.hash.slice(1))) : 0);
 
-  <h2 id="loop">Game Loop</h2>
-  <p>Every frame (~60×/s): timers tick → <b>On update</b> (game script) → every object's <i>Every frame</i> scripts → changed objects re-render. <i>On create</i> runs once when Play starts. <i>On click</i> runs on real clicks in the Game tab.</p>
-
-  <h2 id="keys">Keyboard</h2>
-  <pre><code><span class="cm">// in any update script</span>
-<span class="kw">if</span> (key(<span class="st">"arrowleft"</span>) || key(<span class="st">"a"</span>)) self.x -= <span class="nu">300</span> * dt;   <span class="cm">// held down</span>
-<span class="kw">if</span> (pressed(<span class="st">"space"</span>)) add(<span class="st">"Jumps"</span>, <span class="nu">1</span>);                    <span class="cm">// just this frame</span></code></pre>
-  <p>Names are lowercase: <code>"a"…"z", "0"…"9", "space", "enter", "escape", "arrowup", "arrowdown", "arrowleft", "arrowright", "shift", "control"</code>. Keys typed while editing code don't reach the game.</p>
-
-  <h2 id="examples">Ideas to build</h2>
-  <p>The engine ships no premade games — you build everything. Popular first projects:
-  clicker (variables + upgrade costs), reaction test (<code>time</code> + <code>beep()</code>),
-  catch-the-shape (<code>moveTo</code> + countdown), keyboard dodge (<code>pressed()</code> +
-  <code>spawn/destroy</code>), quiz (data arrays), breakout (<code>touching()</code> + bounce),
-  platformer (<code>cam.follow</code> + gravity), two-room adventure (Trigger +
-  <code>gotoScene()</code>). Every API in this guide exists so you can build them with pure code.</p>
-
-  <h2 id="shortcuts">Shortcuts</h2>
-  <table>
-    <tr><td>Ctrl+Z / Ctrl+Y</td><td>Undo / redo</td></tr>
-    <tr><td>Ctrl+S</td><td>Save</td></tr>
-    <tr><td>Ctrl+D</td><td>Duplicate selected</td></tr>
-    <tr><td>Delete</td><td>Remove selected</td></tr>
-    <tr><td>Wheel / Shift+Wheel</td><td>Zoom at cursor / pan</td></tr>
-    <tr><td>Drag empty canvas</td><td>Pan</td></tr>
-    <tr><td>Shift-click</td><td>Multi-select</td></tr>
-    <tr><td>Tab (in code)</td><td>Indent</td></tr>
-  </table>
-
-  <p class="faint" style="margin-top:40px">2D Engine Studio — pure HTML/CSS/JS, no build step, no dependencies. Projects live in your browser (IndexedDB). Use File → Export for a shareable standalone HTML game. Exported games run scripts with <code>new Function</code> — hosting behind a CSP requires <code>'unsafe-eval'</code>; opening from disk or a plain web server needs no setup.</p>
-</div>
+// License text: fetch once, fill whenever the license page is shown.
+let LICENSE_TEXT = null;
+fetch('LICENSE').then(r => r.ok ? r.text() : Promise.reject())
+  .then(t => { LICENSE_TEXT = t.trim(); fillLicense(); })
+  .catch(() => { LICENSE_TEXT = 'MIT License — see the LICENSE file in the studio folder.'; fillLicense(); });
+function fillLicense() {
+  const pre = document.getElementById('license-text');
+  if (pre && LICENSE_TEXT !== null) pre.textContent = LICENSE_TEXT;
+}
+const _open = open;
+open = function (i) { _open(i); fillLicense(); };
+</script>
 </body>
 </html>

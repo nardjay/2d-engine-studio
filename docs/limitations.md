@@ -279,3 +279,21 @@ camera has no zoom yet, no physics engine beyond AABB + gravity.
   (standalone .html, no editor needed). Verified end-to-end ("showcase.html").
 - Getting-started/README: file:// does not work in Chrome/Edge (ES modules);
   always launch with start.bat or any static server.
+
+## v2.3 — 2026-11-26 — Security hardening, Handbook docs, 3D easter egg
+- **Server security**: `serve.ps1` now rejects drive-letter/colon paths and NUL bytes (400),
+  URL-encoded traversal verified blocked (403) — tested against 9 attack patterns including
+  `/C:/Windows/win.ini` (was 200-empty, now 400) and double-encoded `%252e`.
+- **Prototype pollution audit**: `{...raw}` spreads keep `__proto__` as an inert own property;
+  `Object.assign` on settings can only reparent that one object. No global-proto vector found;
+  documented rather than churned.
+- **Runtime spam guard**: `onUpdate` disable threshold changed `=== 5` → `>= 5` (can't be
+  skipped), and `resetState()` now actually clears `_gameUpdateBroken` / `_gameUpdateErrors` /
+  per-script `_broken` flags — the "press Reset" console hint finally does what it says.
+  (Trigger: user console showed ×2679 error spam from a stale tab running pre-guard code.)
+- **Docs rebuilt as "The Handbook"**: school-style chapters (Grade 1 Beginner → Grade 4 Ship
+  it, Electives, Reference), starting with *What is 2D Engine Studio?*; license chapter embeds
+  the real LICENSE file; API cheat sheet page. No quizzes (user veto, correctly).
+- **3D easter egg restored**: Konami code anywhere in the app → spinning CSS-3D cube overlay
+  advertising the real rotX/rotY/z object properties; unlock remembered in localStorage.
+  Documented under docs → Electives → The Rumor.
