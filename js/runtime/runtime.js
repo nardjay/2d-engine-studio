@@ -918,14 +918,14 @@ export class GameRuntime {
   /** Persistent game storage (localStorage), namespaced per project + slot. */
   saveData(slot, data) {
     try {
-      localStorage.setItem(`clicker-studio-save:${this.project.id}:${slot}`, JSON.stringify(data ?? null));
+      localStorage.setItem(`2dengine-studio-save:${this.project.id}:${slot}`, JSON.stringify(data ?? null));
       return true;
     } catch { return false; }
   }
 
   loadData(slot) {
     try {
-      const raw = localStorage.getItem(`clicker-studio-save:${this.project.id}:${slot}`);
+      const raw = localStorage.getItem(`2dengine-studio-save:${this.project.id}:${slot}`);
       return raw === null ? null : JSON.parse(raw);
     } catch { return null; }
   }

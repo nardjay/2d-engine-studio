@@ -1,9 +1,9 @@
 /**
- * IndexedDB persistence for Clicker Studio projects.
+ * IndexedDB persistence for 2D Engine Studio projects.
  * If IndexedDB is unavailable (e.g. strict private mode) we fall back to an
  * in-memory map and warn the user — data simply will not persist.
  */
-const DB_NAME = 'clicker-studio';
+const DB_NAME = '2dengine-studio';
 const DB_VERSION = 1;
 const STORE = 'projects';
 
