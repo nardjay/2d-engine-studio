@@ -5,6 +5,13 @@ no build step, no dependencies, no install. Open `index.html` (or run a local se
 
 ## Run it
 
+Double-click **`start.bat`**. A small PowerShell server (built into Windows — nothing to
+install) starts on `127.0.0.1:8000` and opens your browser. Python is no longer
+required; `start.bat` still falls back to it automatically.
+
+
+## Run it
+
 ```bash
 # easiest: just open index.html in a browser
 
@@ -76,4 +83,4 @@ LICENSE             MIT
   with your browser permissions when you press Play. Don't open project files
   from strangers if that concerns you.
 - **Dependencies:** none. Any modern evergreen browser (Chrome/Edge/Firefox/Safari)
-  and optionally Python (just for `start.bat`) are all it takes.
+  and that is it — `start.bat` uses only built-in Windows PowerShell.

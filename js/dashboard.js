@@ -32,6 +32,10 @@ export class Dashboard {
         style: { textDecoration: 'none' }, text: 'Docs',
       }),
       el('button', {
+        class: 'btn', text: 'Data \u25BE', title: 'Download / import / delete your projects',
+        onclick: e => this.dataMenu(e.currentTarget),
+      }),
+      el('button', {
         class: 'btn primary',
         onclick: () => this.createNew(),
       }, [el('span', { html: icon('plus', 14) }), el('span', { text: 'New Project' })]),
@@ -76,6 +80,7 @@ export class Dashboard {
         e.preventDefault();
         contextMenu([
           { label: 'Open', onClick: () => this.open(project.id) },
+          { label: 'Download Game (standalone .html)', onClick: () => this.downloadGame(project) },
           { label: 'Rename…', onClick: () => this.rename(project) },
           { label: 'Duplicate', onClick: () => this.duplicate(project) },
           '-',
@@ -93,6 +98,7 @@ export class Dashboard {
     const actions = el('div', { class: 'pc-actions' });
     actions.append(
       el('button', { class: 'btn primary', text: 'Open', onclick: () => this.open(project.id) }),
+      el('button', { class: 'btn', text: 'Download Game', title: 'Standalone HTML \u2014 runs anywhere, no editor needed', onclick: () => this.downloadGame(project) }),
       el('button', { class: 'btn', text: 'Rename', onclick: () => this.rename(project) }),
       el('button', { class: 'btn', text: 'Duplicate', onclick: () => this.duplicate(project) }),
       el('button', { class: 'btn danger', text: 'Delete', onclick: () => this.remove(project) }),
@@ -141,5 +147,80 @@ export class Dashboard {
     await deleteProjectById(project.id);
     await this.render();
     toast('Project deleted');
+  }
+
+  /* ---- data & distribution (v2.2) ---- */
+
+  dataMenu(anchor) {
+    const r = anchor.getBoundingClientRect();
+    contextMenu([
+      { label: 'Download all projects (.json)', onClick: () => this.exportData() },
+      { label: 'Import projects (.json)…', onClick: () => this.importData() },
+      '-',
+      { label: 'Delete ALL projects', danger: true, onClick: () => this.deleteAll() },
+    ], r.left, r.bottom + 6);
+  }
+
+  async exportData() {
+    const projects = await listProjects();
+    if (!projects.length) { toast('No projects to export', 'error'); return; }
+    const bundle = { app: '2d-engine-studio', format: 1, exportedAt: new Date().toISOString(), projects };
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = el('a', { href: url, download: 'engine-studio-projects.json' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast(`Exported ${projects.length} project(s)`, 'success');
+  }
+
+  async importData() {
+    const input = el('input', { type: 'file', accept: 'application/json,.json' });
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    input.addEventListener('change', async () => {
+      const file = input.files && input.files[0];
+      input.remove();
+      if (!file) return;
+      try {
+        const parsed = JSON.parse(await file.text());
+        const list = Array.isArray(parsed) ? parsed
+          : parsed && Array.isArray(parsed.projects) ? parsed.projects
+          : [parsed];
+        let n = 0;
+        for (const raw of list) {
+          if (!raw || !Array.isArray(raw.objects)) continue;
+          const p = normalizeProject(raw);
+          if (await getProject(p.id)) p.id = uid('proj'); // never clobber an existing project
+          await putProject(p);
+          n++;
+        }
+        await this.render();
+        toast(n ? `Imported ${n} project(s)` : 'No valid projects found in file', n ? 'success' : 'error');
+      } catch (err) {
+        toast('Import failed: ' + err.message, 'error');
+      }
+    });
+    input.click();
+  }
+
+  async deleteAll() {
+    const projects = await listProjects();
+    if (!projects.length) { toast('Nothing to delete'); return; }
+    if (!await confirmDialog('Delete ALL Projects', `Delete all ${projects.length} projects? Download your data first — this cannot be undone.`)) return;
+    for (const p of projects) await deleteProjectById(p.id);
+    await this.render();
+    toast('All projects deleted');
+  }
+
+  async downloadGame(project) {
+    toast('Building standalone game…');
+    try {
+      const x = await import('./exporter.js');
+      await x.exportProjectHTML(project);
+    } catch (err) {
+      toast('Export failed: ' + (err.message || err), 'error');
+    }
   }
 }

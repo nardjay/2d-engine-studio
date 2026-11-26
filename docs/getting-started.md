@@ -1,8 +1,12 @@
 # Getting Started — 5 minutes to your first game
 
 ## 1. Open the engine
-Run `py -m http.server 8000 --bind 127.0.0.1` in the engine folder and open
-<http://localhost:8000> (or just double-click `index.html`).
+Double-click **`start.bat`** — it starts a tiny built-in server (PowerShell, ships
+with Windows — no Python or installs needed) and opens your browser at
+<http://127.0.0.1:8000>. To stop, close the server window.
+
+*(Opening `index.html` directly from disk does NOT work in Chrome/Edge — browsers
+block ES modules on `file://`. Always use `start.bat`, or any static server.)*
 
 ## 2. Create a project
 Click **New Project**, name it, and you are in the editor with a blank canvas.

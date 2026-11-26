@@ -266,3 +266,16 @@ camera has no zoom yet, no physics engine beyond AABB + gravity.
   CSP `unsafe-eval` caveat for hosting exported games.
 - Correction to audit §7: asset size caps DID exist (8 MB images/audio, images
   auto-downscaled to ≤1024 px) — "no cap" claim was wrong.
+
+## v2.2 — 2026-11-24 — No-Python launcher + data features
+
+- `serve.ps1`: dependency-free PowerShell static server (HttpListener) on
+  127.0.0.1 only; sends `Cache-Control: no-store` (fixes stale-page reports),
+  blocks path traversal (403) and `.git` (404); verified by live curl tests.
+- `start.bat` rewritten: PowerShell first, Python only as fallback.
+- Dashboard: **Data ▾** menu — download ALL projects as one JSON, import a JSON
+  backup (same-id imports get fresh ids, never clobber), delete all projects.
+- Dashboard: **Download Game** button on every card + right-click menu
+  (standalone .html, no editor needed). Verified end-to-end ("showcase.html").
+- Getting-started/README: file:// does not work in Chrome/Edge (ES modules);
+  always launch with start.bat or any static server.
